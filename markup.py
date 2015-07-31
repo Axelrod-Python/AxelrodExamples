@@ -13,12 +13,12 @@ def ensure_length(s, length):
 def generate_readme_markup(name):
 
     s = """
-    .. |{0}_{1}| image:: ../assets/{0}/strategies_{1}.png
+    .. |{0}_{1}| image:: ../assets/{0}/{0}_{1}.png
     :width: 75%
     :align: middle
     :alt: {0} {1} without noise
 
-    .. |{0}_{1}_noise| image:: ../assets/{0}-5/strategies_{1}.png
+    .. |{0}_{1}_noise| image:: ../assets/{0}-noise/{0}_{1}.png
     :width: 75%
     :align: middle
     :alt: {0} {1} with 5% noise
@@ -45,5 +45,7 @@ def generate_readme_markup(name):
 if __name__ == "__main__":
     names = os.listdir("assets")
     for name in sorted(names):
-        if "-noise" not in name:
-            generate_readme_markup(name)
+        if "-noise" in name:
+            continue
+        print name
+        generate_readme_markup(name)
