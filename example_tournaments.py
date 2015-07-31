@@ -120,27 +120,25 @@ def run_tournament(name, strategies, repetitions=1000, with_ecological=False,
     tm.run_tournaments()
 
 if __name__ == "__main__":
-    import subprocess
     try:
         repetitions = int(sys.argv[1])
     except:
         repetitions = 20
     noise = 0.05
 
-    for strategies, name in [
-        (memoryone_strategies(), "Memoryone"),
-        (finite_memory_strategies(), "FiniteMemory"),
-        (tscizzle_strategies(), "tscizzle"),
-        (sp_strategies(), "StewartPlotkin2012"),
-        (axelrod_strategies(cheaters=False), "AllFairStrategies")]:
+    strategies_names = [
+        #(memoryone_strategies(), "Memoryone"),
+        #(finite_memory_strategies(), "FiniteMemory"),
+        #(tscizzle_strategies(), "tscizzle"),
+        #(sp_strategies(), "StewartPlotkin2012"),
+        (axelrod_strategies(cheaters=False), "AllFairStrategies")]
+
+    for strategies, name in strategies_names:
         print "Running tournament: %s with %s strategies, repeated %s times" % (name, len(strategies), repetitions)
         run_tournament(name, strategies, repetitions=repetitions)
 
-
+    for strategies, name in strategies_names:
         print "Running tournament: %s with %s strategies, repeated %s times, with noise" % (name, len(strategies), repetitions)
         run_tournament(name + "-noise", strategies, repetitions=repetitions, noise=noise)
-
-        subprocess.call(["git", "add", "assets/" + name + "/*.png"])
-        subprocess.call(["git", "add", "assets/" + name + "-noise/*.png"])
 
 

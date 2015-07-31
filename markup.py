@@ -1,8 +1,9 @@
 """
-Generate RST figure markup for README.
+Generate HTML figure markup for README.
 """
 
 import os
+
 
 def ensure_length(s, length):
     """Append spaces until len(s) is at least length."""
