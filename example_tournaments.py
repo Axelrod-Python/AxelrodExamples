@@ -14,6 +14,10 @@ import axelrod
 def ensure_directory(directory):
     """Makes sure that a directory exists and creates it if it does not."""
 
+    head, tail = os.path.split(directory)
+    if head:
+        ensure_directory(head)
+
     if not os.path.isdir(directory):
         os.mkdir(directory)
 
@@ -102,9 +106,11 @@ def run_tournament(name, strategies, repetitions=1000, with_ecological=False,
         # Use them all!
         processes = multiprocessing.cpu_count()
     # Make sure the output directories exist
-    ensure_directory(name)
+    output_directory = os.path.join("assets", name)
+    ensure_directory(output_directory)
+
     # Set up a tournament manager
-    tm = axelrod.TournamentManager(output_directory=name,
+    tm = axelrod.TournamentManager(output_directory=output_directory,
                                    with_ecological=with_ecological,
                                    save_cache=rebuild_cache)
     tm.add_tournament(name, strategies, repetitions=repetitions,
