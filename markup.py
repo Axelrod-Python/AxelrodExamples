@@ -11,35 +11,20 @@ def ensure_length(s, length):
     return s
 
 def generate_readme_markup(name):
-
     s = """
-    .. |{0}_{1}| image:: ../assets/{0}/{0}_{1}.png
-    :width: 75%
-    :align: middle
-    :alt: {0} {1} without noise
-
-    .. |{0}_{1}_noise| image:: ../assets/{0}-noise/{0}-noise_{1}.png
-    :width: 75%
-    :align: middle
-    :alt: {0} {1} with 5% noise
-
-    +------------------------------------+------------------------------------+
-    | {2} | {3} |
-    +------------------------------------+------------------------------------+
-
-    """
+<div style="text-align:center">
+<img src ="/assets/{0}/{0}_{1}.png" width="45%" alt="{0} {1} without noise"/>
+<img src ="/assets/{0}-noise/{0}-noise_{1}.png" width="45%" alt="{0} {1} with 
+5% noise"/>
+</div>
+"""
 
     for type_, header in [("boxplot", "Score Distributions"),
                          ("payoff", "Pairwise Payoffs")]:
-        s21 = "|{0}_{1}|".format(name, type_)
-        s21 = ensure_length(s21, 34)
-        s22 = "|{0}_{1}_noise|".format(name, type_)
-        s22 = ensure_length(s22, 34)
-        output = s.format(name, type_, s21, s22)
+        output = s.format(name, type_)
         print header
         print "*"*len(header)
         print output
-
 
 
 if __name__ == "__main__":
