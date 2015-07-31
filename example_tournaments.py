@@ -120,6 +120,7 @@ def run_tournament(name, strategies, repetitions=1000, with_ecological=False,
     tm.run_tournaments()
 
 if __name__ == "__main__":
+    import subprocess
     try:
         repetitions = int(sys.argv[1])
     except:
@@ -139,5 +140,7 @@ if __name__ == "__main__":
         print "Running tournament: %s with %s strategies, repeated %s times, with noise" % (name, len(strategies), repetitions)
         run_tournament(name + "-noise", strategies, repetitions=repetitions, noise=noise)
 
+        subprocess.call(["git", "add", "assets/" + name + "/*.png"])
+        subprocess.call(["git", "add", "assets/" + name + "-noise/*.png"])
 
 
