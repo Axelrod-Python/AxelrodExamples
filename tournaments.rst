@@ -14,7 +14,7 @@ Score Distributions
     :align: middle
     :alt: AllFairStrategies boxplot without noise
 
-    .. |AllFairStrategies_boxplot_noise| image:: ../assets/AllFairStrategies-noise/AllFairStrategies_boxplot.png
+    .. |AllFairStrategies_boxplot_noise| image:: ../assets/AllFairStrategies-noise/AllFairStrategies-noise_boxplot.png
     :width: 75%
     :align: middle
     :alt: AllFairStrategies boxplot with 5% noise
@@ -32,7 +32,7 @@ Pairwise Payoffs
     :align: middle
     :alt: AllFairStrategies payoff without noise
 
-    .. |AllFairStrategies_payoff_noise| image:: ../assets/AllFairStrategies-noise/AllFairStrategies_payoff.png
+    .. |AllFairStrategies_payoff_noise| image:: ../assets/AllFairStrategies-noise/AllFairStrategies-noise_payoff.png
     :width: 75%
     :align: middle
     :alt: AllFairStrategies payoff with 5% noise
@@ -55,7 +55,7 @@ Score Distributions
     :align: middle
     :alt: FiniteMemory boxplot without noise
 
-    .. |FiniteMemory_boxplot_noise| image:: ../assets/FiniteMemory-noise/FiniteMemory_boxplot.png
+    .. |FiniteMemory_boxplot_noise| image:: ../assets/FiniteMemory-noise/FiniteMemory-noise_boxplot.png
     :width: 75%
     :align: middle
     :alt: FiniteMemory boxplot with 5% noise
@@ -73,7 +73,7 @@ Pairwise Payoffs
     :align: middle
     :alt: FiniteMemory payoff without noise
 
-    .. |FiniteMemory_payoff_noise| image:: ../assets/FiniteMemory-noise/FiniteMemory_payoff.png
+    .. |FiniteMemory_payoff_noise| image:: ../assets/FiniteMemory-noise/FiniteMemory-noise_payoff.png
     :width: 75%
     :align: middle
     :alt: FiniteMemory payoff with 5% noise
@@ -97,7 +97,7 @@ Score Distributions
     :align: middle
     :alt: Memoryone boxplot without noise
 
-    .. |Memoryone_boxplot_noise| image:: ../assets/Memoryone-noise/Memoryone_boxplot.png
+    .. |Memoryone_boxplot_noise| image:: ../assets/Memoryone-noise/Memoryone-noise_boxplot.png
     :width: 75%
     :align: middle
     :alt: Memoryone boxplot with 5% noise
@@ -115,7 +115,7 @@ Pairwise Payoffs
     :align: middle
     :alt: Memoryone payoff without noise
 
-    .. |Memoryone_payoff_noise| image:: ../assets/Memoryone-noise/Memoryone_payoff.png
+    .. |Memoryone_payoff_noise| image:: ../assets/Memoryone-noise/Memoryone-noise_payoff.png
     :width: 75%
     :align: middle
     :alt: Memoryone payoff with 5% noise
@@ -138,7 +138,7 @@ Score Distributions
     :align: middle
     :alt: StewartPlotkin2012 boxplot without noise
 
-    .. |StewartPlotkin2012_boxplot_noise| image:: ../assets/StewartPlotkin2012-noise/StewartPlotkin2012_boxplot.png
+    .. |StewartPlotkin2012_boxplot_noise| image:: ../assets/StewartPlotkin2012-noise/StewartPlotkin2012-noise_boxplot.png
     :width: 75%
     :align: middle
     :alt: StewartPlotkin2012 boxplot with 5% noise
@@ -156,7 +156,7 @@ Pairwise Payoffs
     :align: middle
     :alt: StewartPlotkin2012 payoff without noise
 
-    .. |StewartPlotkin2012_payoff_noise| image:: ../assets/StewartPlotkin2012-noise/StewartPlotkin2012_payoff.png
+    .. |StewartPlotkin2012_payoff_noise| image:: ../assets/StewartPlotkin2012-noise/StewartPlotkin2012-noise_payoff.png
     :width: 75%
     :align: middle
     :alt: StewartPlotkin2012 payoff with 5% noise
@@ -179,7 +179,7 @@ Score Distributions
     :align: middle
     :alt: tscizzle boxplot without noise
 
-    .. |tscizzle_boxplot_noise| image:: ../assets/tscizzle-noise/tscizzle_boxplot.png
+    .. |tscizzle_boxplot_noise| image:: ../assets/tscizzle-noise/tscizzle-noise_boxplot.png
     :width: 75%
     :align: middle
     :alt: tscizzle boxplot with 5% noise
@@ -197,7 +197,7 @@ Pairwise Payoffs
     :align: middle
     :alt: tscizzle payoff without noise
 
-    .. |tscizzle_payoff_noise| image:: ../assets/tscizzle-noise/tscizzle_payoff.png
+    .. |tscizzle_payoff_noise| image:: ../assets/tscizzle-noise/tscizzle-noise_payoff.png
     :width: 75%
     :align: middle
     :alt: tscizzle payoff with 5% noise

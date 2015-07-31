@@ -105,6 +105,7 @@ def run_tournament(name, strategies, repetitions=1000, with_ecological=False,
     if not processes:
         # Use them all!
         processes = multiprocessing.cpu_count()
+
     # Make sure the output directories exist
     output_directory = os.path.join("assets", name)
     ensure_directory(output_directory)
@@ -133,6 +134,7 @@ if __name__ == "__main__":
         (axelrod_strategies(cheaters=False), "AllFairStrategies")]:
         print "Running tournament: %s with %s strategies, repeated %s times" % (name, len(strategies), repetitions)
         run_tournament(name, strategies, repetitions=repetitions)
+
 
         print "Running tournament: %s with %s strategies, repeated %s times, with noise" % (name, len(strategies), repetitions)
         run_tournament(name + "-noise", strategies, repetitions=repetitions, noise=noise)

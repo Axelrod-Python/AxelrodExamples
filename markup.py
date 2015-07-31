@@ -18,7 +18,7 @@ def generate_readme_markup(name):
     :align: middle
     :alt: {0} {1} without noise
 
-    .. |{0}_{1}_noise| image:: ../assets/{0}-noise/{0}_{1}.png
+    .. |{0}_{1}_noise| image:: ../assets/{0}-noise/{0}-noise_{1}.png
     :width: 75%
     :align: middle
     :alt: {0} {1} with 5% noise
