@@ -135,7 +135,7 @@ if __name__ == "__main__":
         run_tournament(name, strategies, repetitions=repetitions)
 
         print "Running tournament: %s with %s strategies, repeated %s times, with noise" % (name, len(strategies), repetitions)
-        run_tournament(name + "5", strategies, repetitions=repetitions, noise=noise)
+        run_tournament(name + "-5", strategies, repetitions=repetitions, noise=noise)
 
 
 
