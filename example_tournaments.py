@@ -22,7 +22,7 @@ def ensure_directory(directory):
         os.mkdir(directory)
 
 def axelrod_strategies(cheaters=False):
-    """Obtains the list of strategies from Axelrod."""
+    """Obtains the list of strategies from Axelrod library."""
 
     s = []
     s.extend(axelrod.basic_strategies)
@@ -31,6 +31,20 @@ def axelrod_strategies(cheaters=False):
         s.extend(axelrod.cheating_strategies)
     #return s
     return [t() for t in s]
+
+def classic_strategies():
+
+    strategies = [
+        axelrod.Cooperator(),
+        axelrod.Defector(),
+        axelrod.GTFT(),
+        axelrod.Grudger(),
+        axelrod.Random(),
+        axelrod.TitForTat(),
+        axelrod.TitFor2Tats(),
+        axelrod.WinStayLoseShift(),
+    ]
+    return strategies
 
 def finite_memory_strategies(lower=0, upper=float('inf')):
     """Filter strategies down to those that have finite memory_depth."""
@@ -47,14 +61,14 @@ def memoryone_strategies():
 
     return finite_memory_strategies(lower=0, upper=2)
 
-
 def first_axelrod_strategies():
-    """The list of strategies used in @tscizzle's Morality Metrics paper.
-    Warning: Still incomplete
+    """
+    The strategies in Axelrod's first tournament.
+    Warning: Incomplete!
     """
 
     strategies = [
-        axelrod.TFT(),
+        axelrod.TitForTat(),
         axelrod.Grofman(),
         axelrod.Shubik(),
         axelrod.Grudger(),
