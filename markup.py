@@ -14,6 +14,7 @@ def ensure_length(s, length):
 def generate_readme_markup(name):
     s = """
 <div style="text-align:center">
+<p>Left: no noise | Right: 5% noise</p>
 <img src ="/assets/{0}/{0}_{1}.png" width="45%" alt="{0} {1} without noise"/>
 <img src ="/assets/{0}-noise/{0}-noise_{1}.png" width="45%" alt="{0} {1} with 
 5% noise"/>

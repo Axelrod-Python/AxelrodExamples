@@ -47,6 +47,23 @@ def memoryone_strategies():
 
     return finite_memory_strategies(lower=0, upper=2)
 
+
+def first_axelrod_strategies():
+    """The list of strategies used in @tscizzle's Morality Metrics paper.
+    Warning: Still incomplete
+    """
+
+    strategies = [
+        axelrod.TFT(),
+        axelrod.Grofman(),
+        axelrod.Shubik(),
+        axelrod.Grudger(),
+        axelrod.Davis(),
+        axelrod.Joss(),
+        axelrod.Tullock()
+    ]
+    return strategies
+
 def tscizzle_strategies():
     """The list of strategies used in @tscizzle's Morality Metrics paper."""
 
@@ -100,7 +117,7 @@ def sp_strategies():
     ]
     return strategies
 
-def run_tournament(name, strategies, repetitions=1000, with_ecological=False,
+def run_tournament(name, strategies, repetitions=100, with_ecological=False,
                processes=None, rebuild_cache=True, noise=0):
     if not processes:
         # Use them all!
@@ -124,13 +141,16 @@ if __name__ == "__main__":
         repetitions = int(sys.argv[1])
     except:
         repetitions = 20
-    noise = 0.05
+    try:
+        noise = float(sys.argv[2])
+    except:
+        noise = 0.05
 
     strategies_names = [
-        #(memoryone_strategies(), "Memoryone"),
-        #(finite_memory_strategies(), "FiniteMemory"),
-        #(tscizzle_strategies(), "tscizzle"),
-        #(sp_strategies(), "StewartPlotkin2012"),
+        (memoryone_strategies(), "Memoryone"),
+        (finite_memory_strategies(), "FiniteMemory"),
+        (tscizzle_strategies(), "tscizzle"),
+        (sp_strategies(), "StewartPlotkin2012"),
         (axelrod_strategies(cheaters=False), "AllFairStrategies")]
 
     for strategies, name in strategies_names:
