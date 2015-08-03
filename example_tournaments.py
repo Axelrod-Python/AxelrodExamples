@@ -151,7 +151,8 @@ if __name__ == "__main__":
         (finite_memory_strategies(), "FiniteMemory"),
         (tscizzle_strategies(), "tscizzle"),
         (sp_strategies(), "StewartPlotkin2012"),
-        (axelrod_strategies(cheaters=False), "AllFairStrategies")]
+        #(axelrod_strategies(cheaters=False), "AllFairStrategies")
+        ]
 
     for strategies, name in strategies_names:
         print "Running tournament: %s with %s strategies, repeated %s times" % (name, len(strategies), repetitions)
