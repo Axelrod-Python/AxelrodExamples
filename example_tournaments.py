@@ -161,11 +161,11 @@ if __name__ == "__main__":
         noise = 0.05
 
     strategies_names = [
-        (memoryone_strategies(), "Memoryone"),
-        (finite_memory_strategies(), "FiniteMemory"),
-        (tscizzle_strategies(), "tscizzle"),
-        (sp_strategies(), "StewartPlotkin2012"),
-        #(axelrod_strategies(cheaters=False), "AllFairStrategies")
+        #(memoryone_strategies(), "Memoryone"),
+        #(finite_memory_strategies(), "FiniteMemory"),
+        #(tscizzle_strategies(), "tscizzle"),
+        #(sp_strategies(), "StewartPlotkin2012"),
+        (axelrod_strategies(cheaters=False), "AllFairStrategies")
         ]
 
     for strategies, name in strategies_names:
