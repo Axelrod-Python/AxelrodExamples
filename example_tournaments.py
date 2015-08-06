@@ -29,7 +29,6 @@ def axelrod_strategies(cheaters=False):
     s.extend(axelrod.ordinary_strategies)
     if cheaters:
         s.extend(axelrod.cheating_strategies)
-    #return s
     return [t() for t in s]
 
 def classic_strategies():
@@ -161,10 +160,10 @@ if __name__ == "__main__":
         noise = 0.05
 
     strategies_names = [
-        #(memoryone_strategies(), "Memoryone"),
-        #(finite_memory_strategies(), "FiniteMemory"),
-        #(tscizzle_strategies(), "tscizzle"),
-        #(sp_strategies(), "StewartPlotkin2012"),
+        (memoryone_strategies(), "Memoryone"),
+        (finite_memory_strategies(), "FiniteMemory"),
+        (tscizzle_strategies(), "tscizzle"),
+        (sp_strategies(), "StewartPlotkin2012"),
         (axelrod_strategies(cheaters=False), "AllFairStrategies")
         ]
 
