@@ -31,7 +31,7 @@ def ensure_directory(directory):
     if not os.path.isdir(directory):
         os.mkdir(directory)
 
-def axelrod_strategies(cheaters=False, remove_meta=False):
+def axelrod_strategies(cheaters=False, remove_meta=True):
     """Obtains the list of strategies from Axelrod library."""
 
     s = []
@@ -148,7 +148,7 @@ def compute_score_data(player, opponents, directory, turns=200, repetitions=50,
     return data
 
 def visualize_strategy(player, opponents, directory, turns=200, repetitions=200,
-                       noise=0, cmap=None, sort=False,
+                       noise=0, cmap=None, sort=False, vmin=0, vmax=1,
                        func=compute_cooperation_data):
     """Plots the average cooperate rate or score per turn for `player` versus
     every opponent in `opponents`."""
@@ -166,36 +166,44 @@ def visualize_strategy(player, opponents, directory, turns=200, repetitions=200,
     data = numpy.array(data)
 
     player_name = str(player)
+    player_name = player_name.replace('/', '-')
+    print player_name
 
     # Plot the data in a pcolor colormap
     pyplot.clf()
     #figure = pyplot.figure()
     fig, ax = pyplot.subplots(figsize=(30, 15))
-    sm = ax.pcolor(data, cmap=cmap)
+    sm = ax.pcolor(data, cmap=cmap, vmin=vmin, vmax=vmax)
     yticks = [str(opponents[sort_order[i]]) for i in range(len(opponents))]
     ax.set_title(player_name)
     pyplot.yticks([y + 0.5 for y in range(len(yticks))], yticks)
     cbar = pyplot.colorbar(sm, ax=ax)
     pyplot.xlabel("Rounds")
 
-    ensure_directory(directory)
-    player_name = str(player)
-    filename = os.path.join(directory, "%s.png" % (player_name,))
+    output_directory = os.path.join("assets", directory)
+    ensure_directory(output_directory)
+    filename = os.path.join(output_directory, "%s.png" % (player_name,))
     pyplot.savefig(filename)
     pyplot.close(fig)
 
+def game_extremes():
+    game = axelrod.Game()
+    scores = game.RPST()
+    return min(scores), max(scores)
 
 if __name__ == "__main__":
     strategies = list(reversed(axelrod_strategies()))
 
     matplotlib.pyplot.close("all")
+    vmin, vmax = game_extremes()
 
-    cmap = pyplot.get_cmap("autumn")
+    cmap = pyplot.get_cmap("BuGn")
     for directory, noise in [("score_heatmaps", 0),
                              ("score_heatmaps_noise", 0.05)]:
         for strategy in strategies:
             visualize_strategy(strategy, strategies, directory, noise=noise,
-                               func=compute_score_data, cmap=cmap)
+                               func=compute_score_data, cmap=cmap, vmin=vmin,
+                               vmax=vmax)
 
     for directory, noise in [("cooperation_heatmaps", 0), 
                              ("cooperation_heatmaps_noise", 0.05)]:
