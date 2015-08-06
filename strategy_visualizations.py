@@ -47,41 +47,6 @@ def axelrod_strategies(cheaters=False, remove_meta=True):
     s.sort(key=str)
     return s
 
-
-def sp_strategies():
-    """The list of strategies used in Stewart and Plotkin's 2012 tournament."""
-
-    strategies = [
-        axelrod.Cooperator(), # ALLC
-        axelrod.Defector(), # ALLD
-        axelrod.GTFT(),
-        axelrod.GoByMajority(soft=False), # HARD_MAJO
-        #axelrod.GoByMajority(soft=True), # SOFT_MAJO
-        axelrod.TitFor2Tats(), # TFT2
-        axelrod.HardTitFor2Tats(), # HARD_TFT2
-        axelrod.Random(), # RANDOM
-        axelrod.WinStayLoseShift(), # WSLS
-        axelrod.TitForTat(),
-        axelrod.HardTitForTat(), # HARD_TFT
-        axelrod.Grudger(), # GRIM
-        axelrod.Joss(), # HARD_JOSS
-        axelrod.ZDGTFT2(),
-        axelrod.ZDExtort2(),
-        axelrod.Prober(),
-        axelrod.Prober2(),
-        axelrod.Prober3(),
-        axelrod.HardProber(),
-        axelrod.Calculator(),
-    ]
-    return strategies
-
-#def map_plays_to_values(plays):
-    #s = 0.
-    #mapping = {'C': 1, 'D': -1}
-    #for play in plays:
-        #s += mapping[play]
-    #return s
-
 def average_plays(plays):
     """Computes how often a strategy cooperates per turn versus each opponent."""
     averages = []
@@ -174,6 +139,7 @@ def visualize_strategy(player, opponents, directory, turns=200, repetitions=200,
     #figure = pyplot.figure()
     fig, ax = pyplot.subplots(figsize=(30, 15))
     sm = ax.pcolor(data, cmap=cmap, vmin=vmin, vmax=vmax)
+    ax.set_ylim(0, len(strategies))
     yticks = [str(opponents[sort_order[i]]) for i in range(len(opponents))]
     ax.set_title(player_name)
     pyplot.yticks([y + 0.5 for y in range(len(yticks))], yticks)
@@ -187,6 +153,9 @@ def visualize_strategy(player, opponents, directory, turns=200, repetitions=200,
     pyplot.close(fig)
 
 def game_extremes():
+    """
+    Returns the max and min game matrix values to set the colorbar endpoints.
+    """
     game = axelrod.Game()
     scores = game.RPST()
     return min(scores), max(scores)
@@ -197,7 +166,8 @@ if __name__ == "__main__":
     matplotlib.pyplot.close("all")
     vmin, vmax = game_extremes()
 
-    cmap = pyplot.get_cmap("BuGn")
+    # Score heatmaps
+    cmap = pyplot.get_cmap("autumn")
     for directory, noise in [("score_heatmaps", 0),
                              ("score_heatmaps_noise", 0.05)]:
         for strategy in strategies:
@@ -205,6 +175,7 @@ if __name__ == "__main__":
                                func=compute_score_data, cmap=cmap, vmin=vmin,
                                vmax=vmax)
 
+    # Cooperation heatmaps
     for directory, noise in [("cooperation_heatmaps", 0), 
                              ("cooperation_heatmaps_noise", 0.05)]:
         for strategy in strategies:
