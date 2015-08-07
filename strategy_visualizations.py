@@ -31,7 +31,7 @@ def ensure_directory(directory):
     if not os.path.isdir(directory):
         os.mkdir(directory)
 
-def axelrod_strategies(cheaters=False, remove_meta=True):
+def axelrod_strategies(cheaters=False, remove_meta=False):
     """Obtains the list of strategies from Axelrod library."""
 
     s = []
