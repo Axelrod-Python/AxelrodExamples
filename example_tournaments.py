@@ -4,6 +4,7 @@ Runs example tournaments using the Axelrod library available at
 https://github.com/marcharper/Axelrod
 """
 
+import argparse
 import multiprocessing
 import os
 import sys
@@ -21,7 +22,7 @@ def ensure_directory(directory):
     if not os.path.isdir(directory):
         os.mkdir(directory)
 
-def axelrod_strategies(cheaters=False):
+def axelrod_strategies(cheaters=False, remove_meta=False):
     """Obtains the list of strategies from Axelrod library."""
 
     s = []
@@ -29,7 +30,13 @@ def axelrod_strategies(cheaters=False):
     s.extend(axelrod.ordinary_strategies)
     if cheaters:
         s.extend(axelrod.cheating_strategies)
-    return [t() for t in s]
+    if remove_meta:
+        s = [t for t in s if not t.__name__.startswith("Meta")]
+    # Instantiate
+    s = [t() for t in s]
+    # Sort by name
+    s.sort(key=str)
+    return s
 
 def classic_strategies():
 
@@ -131,7 +138,7 @@ def sp_strategies():
     return strategies
 
 def run_tournament(name, strategies, repetitions=100, with_ecological=False,
-               processes=None, rebuild_cache=True, noise=0):
+               processes=None, rebuild_cache=True, noise=0, turns=turns):
     if not processes:
         # Use them all!
         processes = multiprocessing.cpu_count()
@@ -144,35 +151,64 @@ def run_tournament(name, strategies, repetitions=100, with_ecological=False,
     tm = axelrod.TournamentManager(output_directory=output_directory,
                                    with_ecological=with_ecological,
                                    save_cache=rebuild_cache)
-    tm.add_tournament(name, strategies, repetitions=repetitions,
+    tm.add_tournament(name, strategies, repetitions=repetitions, turns=turns,
                       processes=processes, noise=noise)
     # Run the tournaments
     tm.run_tournaments()
+    results = tm._tournaments[0].result_set
+    return results
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Run Sample Axelrod tournaments")
+
+    parser.add_argument(
+        '-t',
+        '--turns',
+        type=int,
+        default=200,
+        help='turns per pair')
+
+    parser.add_argument(
+        '-r', '--repetitions',
+        type=int,
+        default=10,
+        help='round-robin repetitions')
+
+    parser.add_argument(
+        '-p', '--processes',
+        type=int,
+        default=None,
+        help='Number of parallel processes to spawn. 0 uses cpu count.')
+
+    parser.add_argument(
+        '-n', '--noise',
+        type=float,
+        default=0,
+        help='Noise level')
+
+    parser.add_argument(
+        '-a',
+        "--all_strategies",
+        action='store_true',
+        dest="all_strategies",
+        help='Run just the all strategies tournament')
+
+    args = parser.parse_args()
+
+    return (args.turns, args.repetitions, args.processes, args.noise,
+            args.all_strategies)
+
 
 if __name__ == "__main__":
-    try:
-        repetitions = int(sys.argv[1])
-    except:
-        repetitions = 20
-    try:
-        noise = float(sys.argv[2])
-    except:
-        noise = 0.05
+    turns, repetitions, processes, noise, all_strategies = parse_args()
 
-    strategies_names = [
-        #(memoryone_strategies(), "Memoryone"),
-        #(finite_memory_strategies(), "FiniteMemory"),
-        #(tscizzle_strategies(), "tscizzle"),
-        #(sp_strategies(), "StewartPlotkin2012"),
-        (axelrod_strategies(cheaters=False), "AllFairStrategies")
-        ]
+    if all_strategies:
+        strategies_names = [(axelrod_strategies(cheaters=False), "AllFairStrategies")]
+    else:
+        strategies_names = [
+            (memoryone_strategies(), "Memoryone"),
+            (finite_memory_strategies(), "FiniteMemory"),
+            (tscizzle_strategies(), "tscizzle"),
+            (sp_strategies(), "StewartPlotkin2012") ]
 
-    for strategies, name in strategies_names:
-        print "Running tournament: %s with %s strategies, repeated %s times" % (name, len(strategies), repetitions)
-        run_tournament(name, strategies, repetitions=repetitions)
-
-    for strategies, name in strategies_names:
-        print "Running tournament: %s with %s strategies, repeated %s times, with noise" % (name, len(strategies), repetitions)
-        run_tournament(name + "-noise", strategies, repetitions=repetitions, noise=noise)
-
-
+    run_tournament(name, strategies, repetitions=repetitions, turns=turns, noise=noise, processes=processes)

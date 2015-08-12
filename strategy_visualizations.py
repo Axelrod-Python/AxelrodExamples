@@ -1,15 +1,12 @@
 
 """
 Runs example tournaments using the Axelrod library available at
-https://github.com/marcharper/Axelrod
+https://github.com/Axelrod-Python/Axelrod
 """
 
+import argparse
 import copy
-import multiprocessing
 import os
-import random
-import sys
-
 from operator import itemgetter, attrgetter
 
 import numpy
@@ -18,34 +15,9 @@ import matplotlib
 from matplotlib import pyplot, gridspec
 
 import axelrod
-from axelrod import Game
 
+from example_tournaments import axelrod_strategies, ensure_directory
 
-def ensure_directory(directory):
-    """Makes sure that a directory exists and creates it if it does not."""
-
-    head, tail = os.path.split(directory)
-    if head:
-        ensure_directory(head)
-
-    if not os.path.isdir(directory):
-        os.mkdir(directory)
-
-def axelrod_strategies(cheaters=False, remove_meta=False):
-    """Obtains the list of strategies from Axelrod library."""
-
-    s = []
-    s.extend(axelrod.basic_strategies)
-    s.extend(axelrod.ordinary_strategies)
-    if cheaters:
-        s.extend(axelrod.cheating_strategies)
-    if remove_meta:
-        s = [t for t in s if not t.__name__.startswith("Meta")]
-    # Instantiate
-    s = [t() for t in s]
-    # Sort by name
-    s.sort(key=str)
-    return s
 
 def average_plays(plays):
     """Computes how often a strategy cooperates per turn versus each opponent."""
@@ -132,11 +104,9 @@ def visualize_strategy(player, opponents, directory, turns=200, repetitions=200,
 
     player_name = str(player)
     player_name = player_name.replace('/', '-')
-    print player_name
 
     # Plot the data in a pcolor colormap
     pyplot.clf()
-    #figure = pyplot.figure()
     fig, ax = pyplot.subplots(figsize=(30, 15))
     sm = ax.pcolor(data, cmap=cmap, vmin=vmin, vmax=vmax)
     ax.set_ylim(0, len(strategies))
@@ -148,7 +118,8 @@ def visualize_strategy(player, opponents, directory, turns=200, repetitions=200,
 
     output_directory = os.path.join("assets", directory)
     ensure_directory(output_directory)
-    filename = os.path.join(output_directory, "%s.png" % (player_name,))
+
+    filename = os.path.join(output_directory, "%s.svg" % (player_name,))
     pyplot.savefig(filename)
     pyplot.close(fig)
 
@@ -160,24 +131,64 @@ def game_extremes():
     scores = game.RPST()
     return min(scores), max(scores)
 
+def parse_args():
+
+    parser = argparse.ArgumentParser(description="Run Sample Axelrod tournaments")
+
+    parser.add_argument(
+        '-f',
+        '--function',
+        type=str,
+        default="scores",
+        help='Either scores or cooperations')
+
+    parser.add_argument(
+        '-t',
+        '--turns',
+        type=int,
+        default=200,
+        help='turns per pair')
+
+    parser.add_argument(
+        '-r', '--repetitions',
+        type=int,
+        default=200,
+        help='round-robin repetitions')
+
+    parser.add_argument(
+        '-n', '--noise',
+        type=float,
+        default=0,
+        help='Noise level')
+
+    args = parser.parse_args()
+
+    return (args.turns, args.repetitions, args.processes, args.noise,
+            args.function)
+
 if __name__ == "__main__":
     strategies = list(reversed(axelrod_strategies()))
-
-    matplotlib.pyplot.close("all")
     vmin, vmax = game_extremes()
 
-    # Score heatmaps
-    cmap = pyplot.get_cmap("autumn")
-    for directory, noise in [("score_heatmaps", 0),
-                             ("score_heatmaps_noise", 0.05)]:
-        for strategy in strategies:
-            visualize_strategy(strategy, strategies, directory, noise=noise,
-                               func=compute_score_data, cmap=cmap, vmin=vmin,
-                               vmax=vmax)
+    turns, repetitions, processes, noise, function = parse_args()
 
-    # Cooperation heatmaps
-    for directory, noise in [("cooperation_heatmaps", 0), 
-                             ("cooperation_heatmaps_noise", 0.05)]:
-        for strategy in strategies:
-            visualize_strategy(strategy, strategies, directory, noise=noise,
-                               func=compute_cooperation_data)
+    # Score heatmaps
+    if function.startswith('s'):
+        cmap = pyplot.get_cmap("autumn")
+        directory = "score_heatmaps"
+        func = compute_score_data
+    elif function.startswith('c'):
+        cmap = pyplot.get_cmap("RdBu")
+        directory = "cooperation_heatmaps"
+        func = compute_cooperation_data
+    else:
+        print("Function argument must startwith 'c' or 's'")
+        exit()
+    if noise:
+        directory += "_noise"
+
+    for index, strategy in enumerate(strategies):
+        print(index, strategy)
+        visualize_strategy(strategy, strategies, directory, noise=noise,
+                           func=func, cmap=cmap, vmin=vmin, vmax=vmax)
+        matplotlib.pyplot.close("all")
