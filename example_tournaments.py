@@ -138,7 +138,7 @@ def sp_strategies():
     return strategies
 
 def run_tournament(name, strategies, repetitions=100, with_ecological=False,
-               processes=None, rebuild_cache=True, noise=0, turns=turns):
+               processes=None, rebuild_cache=True, noise=0, turns=None):
     if not processes:
         # Use them all!
         processes = multiprocessing.cpu_count()
@@ -210,5 +210,7 @@ if __name__ == "__main__":
             (finite_memory_strategies(), "FiniteMemory"),
             (tscizzle_strategies(), "tscizzle"),
             (sp_strategies(), "StewartPlotkin2012") ]
-
-    run_tournament(name, strategies, repetitions=repetitions, turns=turns, noise=noise, processes=processes)
+    for strategies, name in strategies_names:
+        if noise:
+            name += "-noise"
+        run_tournament(name, strategies, repetitions=repetitions, turns=turns, noise=noise, processes=processes)

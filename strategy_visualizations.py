@@ -54,7 +54,7 @@ def compute_cooperation_data(player, opponents, directory, turns=200,
 def average_scores(plays):
     """Computes the average score per turn versus each opponent."""
     averages = []
-    game = Game()
+    game = axelrod.Game()
     mapping = game.scores
     num_cols = len(plays[0][0])
     num_rows = len(plays)
@@ -119,7 +119,7 @@ def visualize_strategy(player, opponents, directory, turns=200, repetitions=200,
     output_directory = os.path.join("assets", directory)
     ensure_directory(output_directory)
 
-    filename = os.path.join(output_directory, "%s.svg" % (player_name,))
+    filename = os.path.join(output_directory, "%s.png" % (player_name,))
     pyplot.savefig(filename)
     pyplot.close(fig)
 
@@ -163,24 +163,25 @@ def parse_args():
 
     args = parser.parse_args()
 
-    return (args.turns, args.repetitions, args.processes, args.noise,
+    return (args.turns, args.repetitions, args.noise,
             args.function)
 
 if __name__ == "__main__":
     strategies = list(reversed(axelrod_strategies()))
-    vmin, vmax = game_extremes()
 
-    turns, repetitions, processes, noise, function = parse_args()
+    turns, repetitions, noise, function = parse_args()
 
     # Score heatmaps
     if function.startswith('s'):
         cmap = pyplot.get_cmap("autumn")
         directory = "score_heatmaps"
         func = compute_score_data
+        vmin, vmax = game_extremes()
     elif function.startswith('c'):
         cmap = pyplot.get_cmap("RdBu")
         directory = "cooperation_heatmaps"
         func = compute_cooperation_data
+        vmin, vmax = None, None
     else:
         print("Function argument must startwith 'c' or 's'")
         exit()
