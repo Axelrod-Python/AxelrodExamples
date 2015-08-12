@@ -144,7 +144,8 @@ def run_tournament(name, strategies, repetitions=100, with_ecological=False,
         processes = multiprocessing.cpu_count()
 
     # Make sure the output directories exist
-    output_directory = os.path.join("assets", name)
+    root_directory = os.path.join("assets", "tournaments")
+    output_directory = os.path.join(root_directory, name)
     ensure_directory(output_directory)
 
     # Set up a tournament manager
