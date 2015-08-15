@@ -11,7 +11,6 @@ from operator import itemgetter, attrgetter
 
 import numpy
 import matplotlib
-#matplotlib.use('AGG')
 from matplotlib import pyplot, gridspec
 
 import axelrod
@@ -26,10 +25,10 @@ def average_plays(plays):
     num_cols = len(plays[0])
     num_rows = len(plays)
     for col in range(num_cols):
-        s = 0.
+        s = 0
         for row in range(num_rows):
             s += mapping[plays[row][col]]
-        averages.append(s / num_rows)
+        averages.append(s / float(num_rows))
     return averages
 
 def compute_cooperation_data(player, opponents, directory, turns=200,
@@ -40,13 +39,13 @@ def compute_cooperation_data(player, opponents, directory, turns=200,
     for i, opponent in enumerate(opponents):
         plays = []
         for _ in range(repetitions):
-            player_ = copy.deepcopy(player)
-            player_.reset()
-            opponent_ = copy.deepcopy(opponent)
-            opponent_.reset()
+            player.reset()
+            opponent.reset()
+            player.tournament_length = turns
+            opponent.tournament_length = turns
             for _ in range(turns):
-                player_.play(opponent_, noise=noise)
-            plays.append(player_.history)
+                player.play(opponent, noise=noise)
+            plays.append(player.history)
         averages = average_plays(plays)
         data.append((i, averages))
     return data
@@ -59,10 +58,10 @@ def average_scores(plays):
     num_cols = len(plays[0][0])
     num_rows = len(plays)
     for col in range(num_cols):
-        s = 0.
+        s = 0
         for row in range(num_rows):
             s += mapping[ (plays[row][0][col], plays[row][1][col]) ][0]
-        averages.append(s / num_rows)
+        averages.append(s / float(num_rows))
     return averages
 
 def compute_score_data(player, opponents, directory, turns=200, repetitions=50,
@@ -73,13 +72,11 @@ def compute_score_data(player, opponents, directory, turns=200, repetitions=50,
     for i, opponent in enumerate(opponents):
         plays = []
         for _ in range(repetitions):
-            player_ = copy.deepcopy(player)
-            player_.reset()
-            opponent_ = copy.deepcopy(opponent)
-            opponent_.reset()
+            player.reset()
+            opponent.reset()
             for _ in range(turns):
-                player_.play(opponent_, noise=noise)
-            plays.append((player_.history, opponent_.history))
+                player.play(opponent, noise=noise)
+            plays.append((player.history, opponent.history))
         averages = average_scores(plays)
         data.append((i, averages))
     return data
@@ -99,7 +96,8 @@ def visualize_strategy(player, opponents, directory, turns=200, repetitions=200,
         sort_order = [x[0] for x in data]
     else:
         sort_order = range(len(opponents))
-    data = [x[1] for x in data]
+
+    data = [x[-1] for x in data]
     data = numpy.array(data)
 
     player_name = str(player)
@@ -109,7 +107,7 @@ def visualize_strategy(player, opponents, directory, turns=200, repetitions=200,
     pyplot.clf()
     fig, ax = pyplot.subplots(figsize=(30, 15))
     sm = ax.pcolor(data, cmap=cmap, vmin=vmin, vmax=vmax)
-    ax.set_ylim(0, len(strategies))
+    ax.set_ylim(0, len(opponents))
     yticks = [str(opponents[sort_order[i]]) for i in range(len(opponents))]
     ax.set_title(player_name)
     pyplot.yticks([y + 0.5 for y in range(len(yticks))], yticks)
@@ -168,6 +166,7 @@ def parse_args():
 
 if __name__ == "__main__":
     strategies = list(reversed(axelrod_strategies()))
+    opponents = list(reversed(axelrod_strategies()))
 
     turns, repetitions, noise, function = parse_args()
 
@@ -190,6 +189,6 @@ if __name__ == "__main__":
 
     for index, strategy in enumerate(strategies):
         print(index, strategy)
-        visualize_strategy(strategy, strategies, directory, noise=noise,
+        visualize_strategy(strategy, opponents, directory, noise=noise,
                            func=func, cmap=cmap, vmin=vmin, vmax=vmax)
         matplotlib.pyplot.close("all")

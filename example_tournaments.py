@@ -22,7 +22,7 @@ def ensure_directory(directory):
     if not os.path.isdir(directory):
         os.mkdir(directory)
 
-def axelrod_strategies(cheaters=False, remove_meta=False):
+def axelrod_strategies(cheaters=False, meta=False):
     """Obtains the list of strategies from Axelrod library."""
 
     s = []
@@ -30,7 +30,7 @@ def axelrod_strategies(cheaters=False, remove_meta=False):
     s.extend(axelrod.ordinary_strategies)
     if cheaters:
         s.extend(axelrod.cheating_strategies)
-    if remove_meta:
+    if not meta:
         s = [t for t in s if not t.__name__.startswith("Meta")]
     # Instantiate
     s = [t() for t in s]

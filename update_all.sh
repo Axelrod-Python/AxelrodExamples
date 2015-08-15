@@ -22,6 +22,3 @@ python strategy_visualizations.py -t 200 -r 400 -n 0.05 -f s &
 
 wait
 echo "All tasks complete"
-
-# git commit -am "Update all assets"
-# git push github master
