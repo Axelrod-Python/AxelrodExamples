@@ -98,6 +98,7 @@ def tscizzle_strategies():
         axelrod.GoByMajority(soft=False),
         axelrod.TitFor2Tats(),
         axelrod.Random(0.8),
+        axelrod.Random(0.5),
         axelrod.Random(0.2),
         axelrod.WinStayLoseShift(), # Pavlov
         axelrod.TitForTat(),
