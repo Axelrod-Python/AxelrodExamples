@@ -138,7 +138,7 @@ def sp_strategies():
     return strategies
 
 def run_tournament(name, strategies, repetitions=100, with_ecological=False,
-               processes=None, rebuild_cache=True, noise=0, turns=None):
+               processes=None, rebuild_cache=True, noise=0, turns=200):
     if not processes:
         # Use them all!
         processes = multiprocessing.cpu_count()

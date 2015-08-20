@@ -1,24 +1,38 @@
 
-# Noise-free Tournaments
-echo "Small tournaments, no noise"
-python example_tournaments.py -t 200 -r 500 -n 0.00 -p 8
-echo "All strategies, no noise"
-python example_tournaments.py -t 200 -r 100 -n 0.00 -p 8 -a
-# Noisy Tournaments
-echo "Small tournaments, 0.05 noise"
-python example_tournaments.py -t 200 -r 500 -n 0.05 -p 8
-echo "All strategies, 0.05 noise"
-python example_tournaments.py -t 200 -r 100 -n 0.05 -p 8 -a
-
 # Strategy Visualizations
+echo "Score Visualizations, no noise (in background process)"
+python strategy_visualizations.py -t 200 -r 100 -n 0.00 -f s &
+echo "Score Difference Visualizations, no noise (in background process)"
+python strategy_visualizations.py -t 200 -r 100 -n 0.00 -f sd &
 echo "Cooperation Visualizations, no noise (in background process)"
-python strategy_visualizations.py -t 200 -r 400 -n 0.00 -f c &
-echo "Cooperation Visualizations, 0.05 noise (in background process)"
-python strategy_visualizations.py -t 200 -r 400 -n 0.05 -f c &
-echo "Strategy Visualizations, no noise (in background process)"
-python strategy_visualizations.py -t 200 -r 400 -n 0.00 -f s &
-echo "Strategy Visualizations, 0.05 noise (in background process)"
-python strategy_visualizations.py -t 200 -r 400 -n 0.05 -f s &
+python strategy_visualizations.py -t 200 -r 100 -n 0.00 -f c &
+echo "Opponent Cooperation Visualizations, no noise (in background process)"
+python strategy_visualizations.py -t 200 -r 100 -n 0.00 -f oc &
 
 wait
+
+# Strategy Visualizations
+echo "Cooperation Visualizations, 0.05 noise (in background process)"
+python strategy_visualizations.py -t 200 -r 100 -n 0.05 -f c &
+echo "Score Visualizations, 0.05 noise (in background process)"
+python strategy_visualizations.py -t 200 -r 100 -n 0.05 -f s &
+echo "Opponent Cooperation Visualizations, 0.05 noise (in background process)"
+python strategy_visualizations.py -t 200 -r 100 -n 0.05 -f oc &
+echo "Stcore Difference Visualizations, 0.05 noise (in background process)"
+python strategy_visualizations.py -t 200 -r 100 -n 0.05 -f sd &
+
+wait
+
+# Noise-free Tournaments
+echo "Small tournaments, no noise"
+python example_tournaments.py -t 200 -r 500 -n 0.00 -p 4
+echo "All strategies, no noise"
+python example_tournaments.py -t 200 -r 100 -n 0.00 -p 4 -a
+# Noisy Tournaments
+echo "Small tournaments, 0.05 noise"
+python example_tournaments.py -t 200 -r 500 -n 0.05 -p 4
+echo "All strategies, 0.05 noise"
+python example_tournaments.py -t 200 -r 100 -n 0.05 -p 4 -a
+
+
 echo "All tasks complete"

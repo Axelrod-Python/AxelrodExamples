@@ -18,79 +18,153 @@ import axelrod
 from example_tournaments import axelrod_strategies, ensure_directory
 
 
-def average_plays(plays):
-    """Computes how often a strategy cooperates per turn versus each opponent."""
-    averages = []
-    mapping = {'C': 1, 'D': 0}
-    num_cols = len(plays[0])
-    num_rows = len(plays)
-    for col in range(num_cols):
-        s = 0
-        for row in range(num_rows):
-            s += mapping[plays[row][col]]
-        averages.append(s / float(num_rows))
-    return averages
+def parse_args():
 
-def compute_cooperation_data(player, opponents, directory, turns=200,
-                             repetitions=50, noise=0,):
+    parser = argparse.ArgumentParser(description="Run Sample Axelrod tournaments")
+
+    parser.add_argument(
+        '-f',
+        '--function',
+        type=str,
+        default='c',
+        help="Must be c, oc, s, or sd")
+
+    parser.add_argument(
+        '-t',
+        '--turns',
+        type=int,
+        default=200,
+        help='turns per pair')
+
+    parser.add_argument(
+        '-r', '--repetitions',
+        type=int,
+        default=200,
+        help='round-robin repetitions')
+
+    parser.add_argument(
+        '-n', '--noise',
+        type=float,
+        default=0,
+        help='Noise level')
+
+    args = parser.parse_args()
+
+    return (args.turns, args.repetitions, args.noise,
+            args.function)
+
+def game_extremes():
+    """
+    Returns the max and min game matrix values to set the colorbar endpoints.
+    """
+    game = axelrod.Game()
+    scores = game.RPST()
+    return min(scores), max(scores)
+
+
+class CooperationAggregator(object):
+    def __init__(self):
+        self.mapping = {'C': 1, 'D': 0}
+        self.counts = []
+        self.rows = 0
+
+    def add_data(self, row1, row2):
+        if not self.counts:
+            self.counts = [0] * len(row1)
+        for i, play in enumerate(row1):
+            self.counts[i] += self.mapping[play]
+        self.rows += 1
+
+    def normalize(self):
+        return numpy.array(self.counts) / float(self.rows)
+
+
+class OpponentCooperationAggregator(object):
+    def __init__(self):
+        self.mapping = {'C': 1, 'D': 0}
+        self.counts = []
+        self.rows = 0
+
+    def add_data(self, row1, row2):
+        if not self.counts:
+            self.counts = [0] * len(row2)
+        for i, play in enumerate(row2):
+            self.counts[i] += self.mapping[play]
+        self.rows += 1
+
+    def normalize(self):
+        return numpy.array(self.counts) / float(self.rows)
+
+
+class ScoreAggregator(object):
+    def __init__(self):
+        game = axelrod.Game()
+        self.mapping = game.scores
+        self.counts = []
+        self.rows = 0
+
+    def add_data(self, row1, row2):
+        if not self.counts:
+            self.counts = [0] * len(row1)
+        for i, (play1, play2) in enumerate(zip(row1, row2)):
+            play = (play1, play2)
+            self.counts[i] += self.mapping[play][0]
+        self.rows += 1
+
+    def normalize(self):
+        return numpy.array(self.counts) / float(self.rows)
+
+
+class ScoreDiffAggregator(object):
+    def __init__(self):
+        game = axelrod.Game()
+        self.mapping = game.scores
+        self.counts = []
+        self.rows = 0
+
+    def add_data(self, row1, row2):
+        if not self.counts:
+            self.counts = [0] * len(row1)
+        for i, (play1, play2) in enumerate(zip(row1, row2)):
+            play = (play1, play2)
+            self.counts[i] += self.mapping[play][0] - self.mapping[play][1]
+        self.rows += 1
+
+    def normalize(self):
+        return numpy.array(self.counts) / float(self.rows)
+
+
+def iterate_plays(player, opponents, turns=200, repetitions=50, noise=0, aggClass=None):
     """Runs many sequences of play to generate play data for computing the
-    cooperation average per turn for each opponent."""
+    average score per turn for each opponent."""
     data = []
     for i, opponent in enumerate(opponents):
-        plays = []
-        for _ in range(repetitions):
+        aggregator = aggClass()
+        if player.stochastic or opponent.stochastic or noise:
+            repetitions_ = repetitions
+        else:
+            repetitions_ = 1
+        for _ in range(repetitions_):
             player.reset()
             opponent.reset()
             player.tournament_length = turns
             opponent.tournament_length = turns
             for _ in range(turns):
                 player.play(opponent, noise=noise)
-            plays.append(player.history)
-        averages = average_plays(plays)
-        data.append((i, averages))
-    return data
-
-def average_scores(plays):
-    """Computes the average score per turn versus each opponent."""
-    averages = []
-    game = axelrod.Game()
-    mapping = game.scores
-    num_cols = len(plays[0][0])
-    num_rows = len(plays)
-    for col in range(num_cols):
-        s = 0
-        for row in range(num_rows):
-            s += mapping[ (plays[row][0][col], plays[row][1][col]) ][0]
-        averages.append(s / float(num_rows))
-    return averages
-
-def compute_score_data(player, opponents, directory, turns=200, repetitions=50,
-                       noise=0,):
-    """Runs many sequences of play to generate play data for computing the
-    average score per turn for each opponent."""
-    data = []
-    for i, opponent in enumerate(opponents):
-        plays = []
-        for _ in range(repetitions):
+            aggregator.add_data(player.history, opponent.history)
             player.reset()
             opponent.reset()
-            for _ in range(turns):
-                player.play(opponent, noise=noise)
-            plays.append((player.history, opponent.history))
-        averages = average_scores(plays)
+        averages = aggregator.normalize()
         data.append((i, averages))
     return data
 
-def visualize_strategy(player, opponents, directory, turns=200, repetitions=200,
-                       noise=0, cmap=None, sort=False, vmin=0, vmax=1,
-                       func=compute_cooperation_data):
+def visualize_strategy(data, player, opponents, directory, turns=200,
+                       repetitions=200, noise=0, cmap=None, sort=False,
+                       vmin=0, vmax=1,):
     """Plots the average cooperate rate or score per turn for `player` versus
     every opponent in `opponents`."""
     if not cmap:
         cmap = pyplot.get_cmap("RdBu")
-    # Compute many rounds of play and average
-    data = func(player, opponents, directory, turns=turns, repetitions=repetitions, noise=noise)
-
     if sort:
         data.sort(key=itemgetter(1))
         sort_order = [x[0] for x in data]
@@ -121,48 +195,49 @@ def visualize_strategy(player, opponents, directory, turns=200, repetitions=200,
     pyplot.savefig(filename)
     pyplot.close(fig)
 
-def game_extremes():
-    """
-    Returns the max and min game matrix values to set the colorbar endpoints.
-    """
-    game = axelrod.Game()
-    scores = game.RPST()
-    return min(scores), max(scores)
 
-def parse_args():
+def make_figures(strategies, opponents, turns=200, repetitions=50,
+                 noise=0, function="c"):
+    # Score heatmaps
+    if function == 's':
+        cmap = pyplot.get_cmap("autumn")
+        directory = "score_heatmaps"
+        #func = compute_score_data
+        vmin, vmax = game_extremes()
+        aggClass = ScoreAggregator
+    # Score Diff heatmaps
+    elif function == 'sd':
+        cmap = pyplot.get_cmap("autumn")
+        directory = "score_diff_heatmaps"
+        #func = compute_score_data
+        vmin, vmax = game_extremes()
+        aggClass = ScoreDiffAggregator
+    # Cooperation heatmaps
+    elif function == 'c':
+        cmap = pyplot.get_cmap("RdBu")
+        directory = "cooperation_heatmaps"
+        #func = compute_cooperation_data
+        vmin, vmax = None, None
+        aggClass = CooperationAggregator
+    # Opponent_cooperation_heatmaps
+    elif function == 'oc':
+        cmap = pyplot.get_cmap("RdBu")
+        directory = "opponent_cooperation_heatmaps"
+        #func = compute_cooperation_data
+        vmin, vmax = None, None
+        aggClass = OpponentCooperationAggregator
+    else:
+        raise ValueError("Invalid function option")
+    if noise:
+        directory += "_noise"
 
-    parser = argparse.ArgumentParser(description="Run Sample Axelrod tournaments")
-
-    parser.add_argument(
-        '-f',
-        '--function',
-        type=str,
-        default="scores",
-        help='Either scores or cooperations')
-
-    parser.add_argument(
-        '-t',
-        '--turns',
-        type=int,
-        default=200,
-        help='turns per pair')
-
-    parser.add_argument(
-        '-r', '--repetitions',
-        type=int,
-        default=200,
-        help='round-robin repetitions')
-
-    parser.add_argument(
-        '-n', '--noise',
-        type=float,
-        default=0,
-        help='Noise level')
-
-    args = parser.parse_args()
-
-    return (args.turns, args.repetitions, args.noise,
-            args.function)
+    for index, strategy in enumerate(strategies):
+        print(index, function, strategy)
+        data = iterate_plays(strategy, opponents, turns=turns, aggClass=aggClass,
+                             repetitions=repetitions, noise=noise)
+        visualize_strategy(data, strategy, opponents, directory, noise=noise,
+                           cmap=cmap, vmin=vmin, vmax=vmax)
+        matplotlib.pyplot.close("all")
 
 if __name__ == "__main__":
     strategies = list(reversed(axelrod_strategies()))
@@ -170,25 +245,5 @@ if __name__ == "__main__":
 
     turns, repetitions, noise, function = parse_args()
 
-    # Score heatmaps
-    if function.startswith('s'):
-        cmap = pyplot.get_cmap("autumn")
-        directory = "score_heatmaps"
-        func = compute_score_data
-        vmin, vmax = game_extremes()
-    elif function.startswith('c'):
-        cmap = pyplot.get_cmap("RdBu")
-        directory = "cooperation_heatmaps"
-        func = compute_cooperation_data
-        vmin, vmax = None, None
-    else:
-        print("Function argument must startwith 'c' or 's'")
-        exit()
-    if noise:
-        directory += "_noise"
-
-    for index, strategy in enumerate(strategies):
-        print(index, strategy)
-        visualize_strategy(strategy, opponents, directory, noise=noise,
-                           func=func, cmap=cmap, vmin=vmin, vmax=vmax)
-        matplotlib.pyplot.close("all")
+    make_figures(strategies, opponents, turns=turns, repetitions=repetitions,
+                 noise=noise, function=function)
