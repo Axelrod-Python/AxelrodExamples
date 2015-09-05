@@ -9,6 +9,8 @@ import multiprocessing
 import os
 import sys
 
+import numpy
+
 import axelrod
 
 
@@ -106,8 +108,11 @@ def tscizzle_strategies():
         axelrod.Grudger(), # Friedman
         axelrod.Tester(),
         axelrod.SuspiciousTitForTat(),
-        axelrod.Joss(0.1),
-        axelrod.Joss(0.3),
+        #axelrod.Joss(0.1),
+        #axelrod.Joss(0.3),
+        axelrod.Joss(0.9),
+        axelrod.Joss(0.7),
+
     ]
     return strategies
 
@@ -137,6 +142,13 @@ def sp_strategies():
         axelrod.Calculator(),
     ]
     return strategies
+
+def random_strategies():
+    strategies = []
+    for value in numpy.arange(0, 1.05, 0.05):
+        strategies.append(axelrod.Random(value))
+    return strategies
+
 
 def run_tournament(name, strategies, repetitions=100, with_ecological=False,
                processes=None, rebuild_cache=True, noise=0, turns=200):
