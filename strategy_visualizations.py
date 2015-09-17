@@ -140,7 +140,7 @@ def iterate_plays(player, opponents, turns=200, repetitions=50, noise=0, aggClas
     data = []
     for i, opponent in enumerate(opponents):
         aggregator = aggClass()
-        if player.stochastic or opponent.stochastic or noise:
+        if player.classifier['stochastic'] or opponent.classifier['stochastic'] or noise:
             repetitions_ = repetitions
         else:
             repetitions_ = 1

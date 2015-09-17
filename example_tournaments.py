@@ -59,7 +59,8 @@ def finite_memory_strategies(lower=0, upper=float('inf')):
 
     strategies = []
     for s in axelrod_strategies():
-        if s.memory_depth >= lower and s.memory_depth < upper:
+        memory_depth = s.classifier['memory_depth']
+        if memory_depth >= lower and memory_depth < upper:
             strategies.append(s)
     return strategies
 
