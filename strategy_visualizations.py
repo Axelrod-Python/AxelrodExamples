@@ -137,6 +137,9 @@ class ScoreDiffAggregator(object):
 def iterate_plays(player, opponents, turns=200, repetitions=50, noise=0, aggClass=None):
     """Runs many sequences of play to generate play data for computing the
     average score per turn for each opponent."""
+    tournament_attributes = {
+        'length': turns,
+        'game': axelrod.Game()}
     data = []
     for i, opponent in enumerate(opponents):
         aggregator = aggClass()
@@ -145,15 +148,17 @@ def iterate_plays(player, opponents, turns=200, repetitions=50, noise=0, aggClas
         else:
             repetitions_ = 1
         for _ in range(repetitions_):
-            player.reset()
-            opponent.reset()
-            player.tournament_length = turns
-            opponent.tournament_length = turns
+            player_ = player.reproduce()
+            opponent_ = opponent.reproduce()
+            player_.tournament_attributes = tournament_attributes
+            opponent_.tournament_attributes = tournament_attributes
+
             for _ in range(turns):
-                player.play(opponent, noise=noise)
-            aggregator.add_data(player.history, opponent.history)
-            player.reset()
-            opponent.reset()
+                player_.play(opponent_, noise=noise)
+            aggregator.add_data(player_.history, opponent_.history)
+
+            player_.reset()
+            opponent_.reset()
         averages = aggregator.normalize()
         data.append((i, averages))
     return data
@@ -240,8 +245,9 @@ def make_figures(strategies, opponents, turns=200, repetitions=50,
         matplotlib.pyplot.close("all")
 
 if __name__ == "__main__":
-    strategies = list(reversed(axelrod_strategies()))
-    opponents = list(reversed(axelrod_strategies()))
+    all_strategies = list(reversed(axelrod_strategies()))
+    strategies = list(all_strategies)
+    opponents = list(all_strategies)
 
     turns, repetitions, noise, function = parse_args()
 

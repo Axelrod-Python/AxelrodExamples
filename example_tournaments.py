@@ -27,9 +27,7 @@ def ensure_directory(directory):
 def axelrod_strategies(cheaters=False, meta=False):
     """Obtains the list of strategies from Axelrod library."""
 
-    s = []
-    s.extend(axelrod.basic_strategies)
-    s.extend(axelrod.ordinary_strategies)
+    s = axelrod.ordinary_strategies
     if cheaters:
         s.extend(axelrod.cheating_strategies)
     if not meta:
