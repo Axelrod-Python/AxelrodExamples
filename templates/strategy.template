@@ -1,0 +1,13 @@
+
+{% for (heatmap_directory, heatmap_name) in heatmap_types_names %}
+<b>{{strategy_name}}</b><br/>
+
+{{heatmap_name}}
+{{"*" * heatmap_name | length}}
+
+<div style="text-align:center">
+<p>Left: no noise | Right: 5% noise</p>
+<img src ="/assets/{{heatmap_directory}}/{{strategy_name}}.png" width="45%" alt="{{heatmap_name}}"/>
+<img src ="/assets/{{heatmap_directory}}_noise/{{strategy_name}}.png" width="45%" alt="{{heatmap_name}} with 5% noise"/>
+</div>
+{% endfor %}

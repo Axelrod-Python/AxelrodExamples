@@ -1,0 +1,96 @@
+
+# AxelrodExamples
+
+Strategy visualizations and example tournaments for the iterated
+[Prisoner's Dilemma](https://en.wikipedia.org/wiki/Prisoner%27s_dilemma)
+library [Axelrod](https://github.com/Axelrod-Python).
+
+
+Strategy Visualizations
+=======================
+
+The first strategy visualization displays how often a strategy cooperates with
+every other strategy per round, averaged over many interactions (~200
+repeated games between every pair of strategies).
+
+[Cooperation Rate Heatmaps](/assets/cooperation_heatmaps/)
+-------------------------
+
+<b>ZDGTFT2</b><br/>
+
+<div style="text-align:center">
+<p>Left: no noise | Right: 5% noise</p>
+<img src ="/assets/cooperation_heatmaps/ZD-GTFT-2.png" width="45%" alt="Cooperation Heatmap"/>
+<img src ="/assets/cooperation_heatmaps_noise/ZD-GTFT-2.png" width="45%" alt="Cooperation Heatmap with 5% noise"/>
+</div>
+
+<b>Calculator</b><br/>
+
+<div style="text-align:center">
+<p>Left: no noise | Right: 5% noise</p>
+<img src ="/assets/cooperation_heatmaps/Calculator.png" width="45%" alt="Cooperation Heatmap"/>
+<img src ="/assets/cooperation_heatmaps_noise/Calculator.png" width="45%" alt="Cooperation Heatmap with 5% noise"/>
+</div>
+
+As you can see, the introduction of noise alters the efficacy of Calculator's
+cycle detection algorithm.
+
+[Average Score Heatmaps](/assets/score_heatmaps/)
+----------------------
+
+We can also visualize the average payoff per round earned by each strategy
+versus every other strategy per round, averaged over many interactions (~200
+repeated games between every pair of strategies).
+
+<b>Alternator</b><br/>
+
+<div style="text-align:center">
+<p>Left: no noise | Right: 5% noise</p>
+<img src ="/assets/score_heatmaps/Alternator.png" width="45%" alt="Average Score Heatmap"/>
+<img src ="/assets/score_heatmaps_noise/Alternator.png" width="45%" alt="Average Score Heatmap with 5% noise"/>
+</div>
+
+<b>Davis</b><br/>
+
+<div style="text-align:center">
+<p>Left: no noise | Right: 5% noise</p>
+<img src ="/assets/score_heatmaps/Davis.png" width="45%" alt="Average Score Heatmap"/>
+<img src ="/assets/score_heatmaps_noise/Davis.png" width="45%" alt="Average Score Heatmap with 5% noise"/>
+</div>
+
+
+All Strategies Heatmaps
+-----------------------
+
+Click to see all the renderings for each strategy.
+
+{% for strategy_name in strategy_names%}
+* [{{strategy_name}}](/strategies/{{strategy_name}}.md)
+{% endfor %}
+
+
+Example Tournaments
+===================
+
+See the python script [example_tournaments.py](example_tournaments.py) for the
+exact details of each tournament.
+
+{% for (directory, tournament_name, blob) in tournament_info %}
+{{tournament_name}}
+{{"-" * tournament_name | length}}
+
+{{blob}}
+
+{% for (plottype, header) in plottypes_headers %}
+{{header}}
+{{"*" * header | length}}
+
+<div style="text-align:center">
+<p>Left: no noise | Right: 5% noise</p>
+<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/{{directory}}/{{directory}}_boxplot.svg" width="45%" alt="{{tournament_name}} boxplot without noise"/>
+<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/{{directory}}-noise/{{directory}}-noise_boxplot.svg" width="45%" alt="{{tournament_name}} boxplot with5% noise"/>
+</div>
+{% endfor %}
+
+{% endfor %}
+

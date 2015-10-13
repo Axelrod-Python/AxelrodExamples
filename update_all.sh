@@ -34,5 +34,8 @@ python example_tournaments.py -t 200 -r 500 -n 0.05 -p 4
 echo "All strategies, 0.05 noise"
 python example_tournaments.py -t 200 -r 100 -n 0.05 -p 4 -a
 
+wait
+
+python render_templates.py
 
 echo "All tasks complete"
