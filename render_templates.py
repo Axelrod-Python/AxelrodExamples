@@ -23,7 +23,9 @@ for strategy_name in strategy_names:
 # Render README.md
 plottypes_headers = [("boxplot", "Score Distributions"),
                      ("winplot", "Win Distributions"),
-                     ("payoff", "Pairwise Payoffs")]
+                     ("payoff", "Pairwise Payoffs"),
+                     ("sdvplot", "Score Difference Distributions"),
+                     ("pdplot", "Pairwise Payoff Differences")                    ]
 
 
 tournament_info = [("AllFairStrategies", "All Fair Strategies", """This tournament covers all strategies in the Axelrod library that follow the standard Axelrod rules."""),

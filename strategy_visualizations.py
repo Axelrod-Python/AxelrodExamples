@@ -148,8 +148,8 @@ def iterate_plays(player, opponents, turns=200, repetitions=50, noise=0, aggClas
         else:
             repetitions_ = 1
         for _ in range(repetitions_):
-            player_ = player.reproduce()
-            opponent_ = opponent.reproduce()
+            player_ = player.clone()
+            opponent_ = opponent.clone()
             player_.tournament_attributes = tournament_attributes
             opponent_.tournament_attributes = tournament_attributes
 
