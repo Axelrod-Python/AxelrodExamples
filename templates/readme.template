@@ -64,8 +64,7 @@ All Strategies Heatmaps
 
 Click to see all the renderings for each strategy.
 
-{% for strategy_name in strategy_names %}
-* [{{strategy_name}}](/strategies/{{strategy_name}}.md)
+{% for strategy_name in strategy_names %}* [{{strategy_name}}](/strategies/{{strategy_name}}.md)
 {% endfor %}
 
 
