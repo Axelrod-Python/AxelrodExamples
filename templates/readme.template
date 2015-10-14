@@ -107,24 +107,6 @@ Pairwise Payoffs
 <img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/AllFairStrategies-noise/AllFairStrategies-noise_payoff.svg" width="45%" alt="All Fair Strategies boxplot with5% noise"/>
 </div>
 
-Score Difference Distributions
-******************************
-
-<div style="text-align:center">
-<p>Left: no noise | Right: 5% noise</p>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/AllFairStrategies/AllFairStrategies_sdvplot.svg" width="45%" alt="All Fair Strategies boxplot without noise"/>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/AllFairStrategies-noise/AllFairStrategies-noise_sdvplot.svg" width="45%" alt="All Fair Strategies boxplot with5% noise"/>
-</div>
-
-Pairwise Payoff Differences
-***************************
-
-<div style="text-align:center">
-<p>Left: no noise | Right: 5% noise</p>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/AllFairStrategies/AllFairStrategies_pdplot.svg" width="45%" alt="All Fair Strategies boxplot without noise"/>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/AllFairStrategies-noise/AllFairStrategies-noise_pdplot.svg" width="45%" alt="All Fair Strategies boxplot with5% noise"/>
-</div>
-
 
 Tournaments
 -----------
