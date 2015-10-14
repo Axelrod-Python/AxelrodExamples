@@ -41,3 +41,15 @@ md = template.render(strategy_names=strategy_names,
 filename = "README.md"
 with open(filename, 'w') as f:
     f.write(md)
+
+# Render tournaments
+# Render individual strategy pages
+for (directory, tournament_name, blob) in tournament_info:
+    template = env.get_template('tournament.template')
+    md = template.render(directory=directory, tournament_name=tournament_name, blob=blob, plottypes_headers=plottypes_headers)
+    filename = "tournaments/{0}.md".format(directory)
+    with open(filename, 'w') as f:
+        f.write(md)
+
+
+
