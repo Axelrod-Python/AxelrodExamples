@@ -2,13 +2,6 @@
 """
 Inferring memory depth of Iterated Prisoner's Dilemma strategies
 using scipy and the Axelrod library.
-
-Todo:
-infer with noise
-
-MetaMemory depth -- incorrect?
-Eventual depth
-
 """
 
 from itertools import islice
