@@ -11,7 +11,7 @@ from scipy import stats
 
 import axelrod
 
-C, D = axelrod.Actions.C, axelrod.Actions.D
+C, D = axelrod.Actions.C, axelrod.Actions.D # The plays
 
 
 def fet_tests(data_dict):
@@ -21,15 +21,17 @@ def fet_tests(data_dict):
     D_count = sum(v[1] for (k, v) in data_dict.items())
 
     test_results = dict()
-    for key in data_dict.keys():
-        C_count_context = data_dict[key][0]
-        D_count_context = data_dict[key][1]
+    # Pull out the C and D counts for each context
+    for context in data_dict.keys():
+        C_count_context = data_dict[context][0]
+        D_count_context = data_dict[context][1]
 
+        # Build the conditional table
         table = numpy.array([[C_count, D_count], [C_count_context, D_count_context]])
 
-        # Fisher exact
+        # Run the Fisher test
         test_stat, pvalue = stats.fisher_exact(table)
-        test_results[key] = (test_stat, pvalue)
+        test_results[context] = (test_stat, pvalue)
 
     return test_results
 
@@ -37,13 +39,13 @@ def memory_one_estimate(data_dict):
     """Estimates the memory one strategy probabilities from the observed
     data."""
     estimates = dict()
-    for key in data_dict.keys():
-        C_count_context = data_dict[key][0]
-        D_count_context = data_dict[key][1]
+    for context in data_dict.keys():
+        C_count = data_dict[context][0]
+        D_count = data_dict[context][1]
         try:
-            estimates[key] = float(C_count_context) / (C_count_context + D_count_context)
+            estimates[context] = float(C_count) / (C_count + D_count)
         except ZeroDivisionError:
-            estimates[key] = None
+            estimates[context] = None
     return estimates
 
 def print_dict(d):
@@ -52,7 +54,7 @@ def print_dict(d):
 
 def collect_data(opponent):
     """Generator to collect data from opponent."""
-    player = axelrod.Random(0.5)
+    player = axelrod.Random(0.5)  # The probe strategy
     while True:
         player.play(opponent)
         yield (player.history[-1], opponent.history[-1])
@@ -63,6 +65,7 @@ def infer_depth(opponent, test_rounds=200):
                  (C, D): [0, 0],
                  (D, C): [0, 0],
                  (D, D): [0, 0]}
+    # Save the history locally as we go
     history = []
     for turn in islice(collect_data(opponent), test_rounds + 1):
         history.append(turn)
@@ -72,12 +75,16 @@ def infer_depth(opponent, test_rounds=200):
         context = history[-2]
         # Context is reversed for opponent
         context = (context[1], context[0])
+        # Count the opponent's Cs and Ds
         if turn[1] == C:
             data_dict[context][0] += 1
         else:
             data_dict[context][1] += 1
+    # Perform the Fisher tests
     test_results = fet_tests(data_dict)
+    # Estimate the four conditional probabilities
     estimate = memory_one_estimate(data_dict)
+    
     return data_dict, test_results, estimate
 
 def main():
