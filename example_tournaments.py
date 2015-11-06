@@ -24,7 +24,7 @@ def ensure_directory(directory):
     if not os.path.isdir(directory):
         os.mkdir(directory)
 
-def axelrod_strategies(cheaters=False, meta=False):
+def axelrod_strategies(cheaters=False, meta=False, transformer=None):
     """Obtains the list of strategies from Axelrod library."""
 
     s = axelrod.ordinary_strategies
@@ -33,7 +33,10 @@ def axelrod_strategies(cheaters=False, meta=False):
     if not meta:
         s = [t for t in s if not t.__name__.startswith("Meta")]
     # Instantiate
-    s = [t() for t in s]
+    if transformer:
+        s = [transformer(t)() for t in s]
+    else:
+        s = [t() for t in s]
     # Sort by name
     s.sort(key=str)
     return s
@@ -142,6 +145,26 @@ def sp_strategies():
     ]
     return strategies
 
+#def axelrod_first():
+    #strategies = [
+        #axelrod.TitForTat(),
+        #axelrod.Random(),
+        #axelrod.Davis(),
+        #axelrod.RevisedDowning(),
+        #axelrod.Feld(),
+        #axelrod.Graaskamp(),
+        #axelrod.Grofman(),
+        #axelrod.Grudger(), # FRIEDMAN
+        #axelrod.Nydegger(),
+        #axelrod.Joss(),
+        #axelrod.Shubik(),
+        #axelrod.SteinRapoport(),
+        #axelrod.TidemanChieruzzi(),
+        #axelrod.Tullock(),
+        #axelrod.UnnamedStrategy()
+    #]
+    #return strategies
+
 def random_strategies():
     strategies = []
     for value in numpy.arange(0, 1.05, 0.05):
@@ -219,10 +242,12 @@ if __name__ == "__main__":
         strategies_names = [(axelrod_strategies(cheaters=False), "AllFairStrategies")]
     else:
         strategies_names = [
+            #(axelrod_first(), "Axelrod First"),
             (memoryone_strategies(), "Memoryone"),
             (finite_memory_strategies(), "FiniteMemory"),
             (tscizzle_strategies(), "tscizzle"),
-            (sp_strategies(), "StewartPlotkin2012") ]
+            (sp_strategies(), "StewartPlotkin2012")
+            ]
     for strategies, name in strategies_names:
         if noise:
             name += "-noise"
