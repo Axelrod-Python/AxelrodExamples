@@ -1,4 +1,9 @@
 
+# Generate the data
+python strategy_visualizations.py -d &
+python strategy_visualizations.py -d -n 0.05 &
+wait
+
 # Strategy Visualizations
 echo "Score Visualizations, no noise (in background process)"
 python strategy_visualizations.py -t 200 -r 100 -n 0.00 -f s &

@@ -7,6 +7,7 @@ Requires python 3.4+
 """
 
 import argparse
+from collections import defaultdict
 import csv # python 3+ usage
 import itertools
 from operator import itemgetter, attrgetter
@@ -21,6 +22,8 @@ from matplotlib import pyplot, gridspec
 import axelrod
 
 from example_tournaments import axelrod_strategies, ensure_directory
+
+C, D = "C", "D"
 
 ## Python 3.5
 #def ensure_directory(path):
@@ -62,7 +65,6 @@ def parse_args():
         action="store_true",
         help='Generate Data')
 
-
     args = parser.parse_args()
 
     return (args.turns, args.repetitions, args.noise,
@@ -91,12 +93,16 @@ def unzip(l):
 
 ## Generate match results and cache to CSV
 
-def csv_filename(player, opponent):
+def csv_filename(player, opponent, noise=False):
     """Provides a standardized filename for storing and loading match data."""
     filename = "{}--{}.csv".format(normalized_name(player), normalized_name(opponent))
-    return filename
+    if noise:
+        path = Path("assets") / "csv" / "matches-noisy" / filename
+    else:
+        path = Path("assets") / "csv" / "matches" / filename
+    return path
 
-def load_match_csv(player, opponent):
+def load_match_csv(player, opponent, noise=None):
     """Loads a cached CSV file. Returns a list of lists of match plays:
         [
             [('C', 'D'), ('C', 'C'), ... ],
@@ -106,13 +112,13 @@ def load_match_csv(player, opponent):
     since swapping player and opponent will only change the order of plays.
     """
     reverse = False
-    filename = csv_filename(player, opponent)
-    path = Path("csv") / "matches" / filename
+    filename = csv_filename(player, opponent, noise=noise)
+    path = Path(filename)
     # Check to see if data exists for the other permutation
     if not path.exists():
         reverse = True
-        filename = csv_filename(opponent, player)
-        path = Path("csv") / "matches" / filename
+        filename = csv_filename(opponent, player, noise=noise)
+        path = Path(filename)
         # No match data exists for these two players
         if not path.exists:
             raise FileNotFoundError("No match data found")
@@ -128,7 +134,7 @@ def load_match_csv(player, opponent):
 def write_match_to_csv(data, filename, data_directory="csv"):
     """Takes match data (or a generator) and writes the data to a csv file."""
     #ensure_directory("csv")
-    path = Path("csv") / "matches" / filename
+    path = Path(filename)
     with path.open('w') as csvfile:
         writer = csv.writer(csvfile)
         for row in data:
@@ -136,10 +142,12 @@ def write_match_to_csv(data, filename, data_directory="csv"):
             writer.writerow(csv_row)
 
 def generate_match_results(player, opponent, turns=200, repetitions=100,
-                           noise=0):
+                           noise=None):
     """Generates match date between two players. Yields rows of the form
     [(C, D), (C, C), ...]."""
     # Make sure we have two distinct player objects
+    if not noise:
+        noise = 0
     if player == opponent:
         opponent = opponent.clone()
     # Set tournament_attributes
@@ -171,7 +179,7 @@ def save_all_match_results(players, turns=200, repetitions=100, noise=0):
             repetitions_ = 1
         data = generate_match_results(p1, p2, turns=turns,
                                         repetitions=repetitions_, noise=noise)
-        filename = csv_filename(p1, p2)
+        filename = csv_filename(p1, p2, noise=noise)
         write_match_to_csv(data, filename)
 
 ## Classes to reduce the data sets in various ways
@@ -253,12 +261,12 @@ class ScoreDiffAggregator(object):
         return numpy.array(self.counts) / float(self.rows)
 
 
-def aggregated_data(player, opponents, aggClass=None):
+def aggregated_data(player, opponents, aggClass=None, noise=None):
     """Aggregates cached data for player versus every opponent for plotting."""
     data = []
     for i, opponent in enumerate(opponents):
         aggregator = aggClass()
-        match_data = load_match_csv(player, opponent)
+        match_data = load_match_csv(player, opponent, noise=noise)
         for row in match_data:
             # Produce two history lists
             history1, history2 = unzip(row)
@@ -267,26 +275,27 @@ def aggregated_data(player, opponents, aggClass=None):
         data.append((i, averages))
     return data
 
-def aggregated_data_to_csv(player, opponents, aggClass=None):
+def aggregated_data_to_csv(players, opponents, noise=None):
     """Aggregates cached data for player versus every opponent for plotting."""
-    data = []
-    for i, opponent in enumerate(opponents):
-        aggregator = aggClass()
-        match_data = load_match_csv(player, opponent)
-        for row in match_data:
-            # Produce two history lists
-            history1, history2 = unzip(row)
-            aggregator.add_data(history1, history2)
-        averages = aggregator.normalize()
-        data.append((i, averages))
-    return data
-
-    path = Path("csv") / "matches" / filename
-    with path.open('w') as csvfile:
-        writer = csv.writer(csvfile)
-        for row in data:
-            csv_row = ["".join(element) for element in row]
-            writer.writerow(csv_row)
+    for name, aggClass in [("score", ScoreAggregator),
+                           ("score_diff", ScoreDiffAggregator),
+                           ("cooperation", CooperationAggregator),
+                           ("opponent_cooperation", OpponentCooperationAggregator)
+                           ]:
+        for player in players:
+            data = aggregated_data(player, opponents, aggClass=aggClass,
+                                   noise=noise)
+            filename = normalized_name(player)
+            if noise:
+                filename += "_noisy"
+            filename += ".csv"
+            path = Path("assets") / "csv" / name / filename
+            with path.open('w') as csvfile:
+                writer = csv.writer(csvfile)
+                for i, row in enumerate(data):
+                    csv_row = [normalized_name(opponents[i])]
+                    csv_row.extend(row[-1])
+                    writer.writerow(csv_row)
 
 # Make Figures
 
@@ -358,13 +367,226 @@ def make_figures(strategies, opponents, turns=200, repetitions=50,
 
     for index, player in enumerate(strategies):
         print(index, function, player)
-        data = aggregated_data(player, opponents, aggClass=aggClass)
+        data = aggregated_data(player, opponents, aggClass=aggClass, noise=noise)
         #data = iterate_plays(strategy, opponents, turns=turns, aggClass=aggClass,
                              #repetitions=repetitions, noise=noise)
 
         visualize_strategy(data, player, opponents, directory=str(path), noise=noise,
                            cmap=cmap, vmin=vmin, vmax=vmax)
         matplotlib.pyplot.close("all")
+
+def summarize_matchup(player, opponent, initial=10):
+    """Compute various quantities of interest for the given matchup."""
+    game = axelrod.Game()
+    scores = []
+    score_diffs = []
+    match_data = load_match_csv(player, opponent)
+    context_dict = defaultdict(float)
+    initial_plays = [0] * initial
+    total_plays = 0
+    total_matches = 0
+    match_length = 0
+
+    for row in match_data:
+        match_length = len(row) # assumes all are equal
+        total_matches += 1
+        total_plays += len(row)
+        score = 0
+        score_diff = 0
+        for play1, play2 in row:
+            s = game.scores[(play1, play2)]
+            score += s[0]
+            score_diff += s[0] - s[1]
+            if play1 == "C":
+                context_dict[''] += 1
+        scores.append(score)
+        score_diffs.append(score_diff)
+
+        # The rest of the contexts
+        for i, (play1, play2) in enumerate(row[1:]):
+            if play1 == "C":
+                context_dict[row[i - 1]] += 1
+        for i, (play1, play2) in enumerate(row[2:]):
+            if play1 == "C":
+                key = (row[i - 2], row[i - 1])
+                context_dict[key] += 1
+        # initial_plays
+        for i in range(len(initial_plays)):
+            play = row[i][0]
+            if play == "C":
+                initial_plays[i] += 1
+    # normalize and take means
+    initial_plays = numpy.array(initial_plays) / float(total_matches)
+    context_dict[""] /= float(total_plays)
+    contexts = [(C, C), (C, D), (D, C), (D, D)]
+    for context in contexts:
+        context_dict[context] /= float(total_matches) * (match_length - 1)
+    for context in itertools.product(contexts, repeat=2):
+        context_dict[context] /= float(total_matches) * (match_length - 2)
+    scores = numpy.array(scores) / float(match_length)
+    mean_score = numpy.mean(scores)
+    std_score = numpy.std(scores)
+    score_diffs = numpy.array(score_diffs) / float(match_length)
+    mean_score_diff = numpy.mean(score_diffs)
+    std_score_diff = numpy.std(score_diffs)
+
+    return (initial_plays, context_dict, mean_score, std_score,
+            mean_score_diff, std_score_diff)
+
+def big_table_1(players, initial=10):
+    """Table 1:
+    For each strategy pair, compute the probability of cooperation on the
+    first 10 rounds, the mean, median, and deviation for scores, and
+    score diffs, probabilities for each context C, D, CC, CD, DC, DD, ...,
+    overall C and D."""
+    path = Path("assets") / "csv" / "table_1.csv"
+    writer = csv.writer(path.open('w'))
+
+    rows = []
+    contexts = [(C, C), (C, D), (D, C), (D, D)]
+    context_keys = [""]
+    context_keys.extend(context_keys)
+    context_keys.extend(itertools.product(contexts, repeat=2))
+
+    header = ["player_name", "opponent_name", "stochastic", "memory_depth",
+              "mean_score", "std_score", "mean_score_diff", "std_score_diff"]
+    header.extend(["round_" + str(i) for i in range(initial)])
+    header.append("_")
+    header.extend(["".join(x) for x in contexts])
+    header.extend(["".join(x) + "".join(y) for (x, y) in itertools.product(contexts, repeat=2)])
+
+    writer.writerow(header)
+
+    for p1 in players:
+        for p2 in players:
+            (initial_plays, context_dict, mean_score, std_score,
+            mean_score_diff, std_score_diff) = summarize_matchup(p1, p2,
+                                                                 initial=initial)
+            row = [normalized_name(p1), normalized_name(p2),
+                   p1.classifier["stochastic"], p1.classifier["memory_depth"],
+                   mean_score, std_score, mean_score_diff, std_score_diff]
+            row.extend(initial_plays)
+            for key in context_keys:
+                row.append(context_dict[key])
+            writer.writerow(row)
+
+
+def summarize_player(player, opponents, initial=10):
+    game = axelrod.Game()
+    scores = []
+    score_diffs = []
+    context_dict = defaultdict(float)
+    initial_plays = [0] * initial
+    total_plays = 0
+    total_matches = 0
+    match_length = 0
+
+    for opponent in opponents:
+        match_data = load_match_csv(player, opponent)
+        for row in match_data:
+            match_length = len(row) # assumes all are equal
+            total_matches += 1
+            total_plays += len(row)
+            score = 0
+            score_diff = 0
+            for play1, play2 in row:
+                s = game.scores[(play1, play2)]
+                score += s[0]
+                score_diff += s[0] - s[1]
+                if play1 == "C":
+                    context_dict[''] += 1
+            scores.append(score)
+            score_diffs.append(score_diff)
+
+            # The rest of the contexts
+            for i, (play1, play2) in enumerate(row[1:]):
+                if play1 == "C":
+                    context_dict[row[i - 1]] += 1
+            for i, (play1, play2) in enumerate(row[2:]):
+                if play1 == "C":
+                    key = (row[i - 2], row[i - 1])
+                    context_dict[key] += 1
+            # initial_plays
+            for i in range(len(initial_plays)):
+                play = row[i][0]
+                if play == "C":
+                    initial_plays[i] += 1
+    # normalize and take means
+    initial_plays = numpy.array(initial_plays) / (float(total_matches) * len(opponents))
+    context_dict[""] /= float(total_plays)
+    contexts = [(C, C), (C, D), (D, C), (D, D)]
+    for context in contexts:
+        context_dict[context] /= float(total_matches) * (match_length - 1) * len(opponents)
+    for context in itertools.product(contexts, repeat=2):
+        context_dict[context] /= float(total_matches) * (match_length - 2) * len(opponents)
+    scores = numpy.array(scores) / (float(match_length) * len(opponents))
+    mean_score = numpy.mean(scores)
+    std_score = numpy.std(scores)
+    score_diffs = numpy.array(score_diffs) / (float(match_length) * len(opponents))
+    mean_score_diff = numpy.mean(score_diffs)
+    std_score_diff = numpy.std(score_diffs)
+
+    return (initial_plays, context_dict, mean_score, std_score,
+            mean_score_diff, std_score_diff)
+
+def big_table_2(players, initial=10):
+    """
+    Table 2: for each strategy:
+        name
+        memory depth
+        is_stochastic
+        average over all strategies:
+            prob cooperation on first 5 moves
+            prob cooperation on last 5 moves
+            prob cooperation for each context C, D
+            prob cooperation for each context CC, CD, DC, DD
+            prob cooperation for each context [C, D]**3
+
+    """
+
+    path = Path("assets") / "csv" / "table_2.csv"
+    writer = csv.writer(path.open('w'))
+
+    rows = []
+    contexts = [(C, C), (C, D), (D, C), (D, D)]
+    context_keys = [""]
+    context_keys.extend(context_keys)
+    context_keys.extend(itertools.product(contexts, repeat=2))
+
+    header = ["player_name", "stochastic", "memory_depth",
+              "mean_score", "std_score", "mean_score_diff", "std_score_diff"]
+    header.extend(["round_" + str(i) for i in range(initial)])
+    header.append("_")
+    header.extend(["".join(x) for x in contexts])
+    header.extend(["".join(x) + "".join(y) for (x, y) in itertools.product(contexts, repeat=2)])
+
+    writer.writerow(header)
+
+    for p1 in players:
+        (initial_plays, context_dict, mean_score, std_score,
+        mean_score_diff, std_score_diff) = summarize_player(p1, players,
+                                                                initial=initial)
+        row = [normalized_name(p1),
+                p1.classifier["stochastic"], p1.classifier["memory_depth"],
+                mean_score, std_score, mean_score_diff, std_score_diff]
+        row.extend(initial_plays)
+        for key in context_keys:
+            row.append(context_dict[key])
+        writer.writerow(row)
+
+#def tournament_data(players):
+    #"""
+    #for each strategy:
+        #mean score
+        #mean wins
+        #wins deviation
+        #score deviation
+    #"""
+    #data = []
+    #results = run_tournament("--", players)
+    #for player in players:
+        #row = []
+    #pass
 
 def init():
     # Check python version
@@ -379,65 +601,45 @@ def init():
     ensure_directory(str(path))
     path = path / "matches"
     ensure_directory(str(path))
+    path = Path("assets") / "csv" / "matches-noisy"
+    ensure_directory(str(path))
 
     path = Path("assets")
     ensure_directory(str(path))
     path = path / "heatmaps"
     ensure_directory(str(path))
     for sub in ["score", "score_diff", "cooperation", "opponent_cooperation"]:
+        path = Path("assets") / "csv" / sub
+        ensure_directory(str(path))
         path = Path("assets") / "heatmaps" / sub
         ensure_directory(str(path))
         path = Path("assets") / "heatmaps" / (sub + "-noisy")
         ensure_directory(str(path))
 
-def summarize_match():
-    pass
-
-def big_tables():
-    """Table 1:
-    For each strategy pair, compute the probability of cooperation on the
-    first 10 rounds, the mean, median, and deviation for scores, wins, and
-    score diffs, probabilities for each context C, D, CC, CD, DC, DD, ...,
-    overall C and D
-
-
-    Table 2: for each strategy:
-        name
-        memory depth
-        is_stochastic
-        average over all strategies:
-            prob cooperation on first 5 moves
-            prob cooperation on last 5 moves
-            prob cooperation for each context C, D
-            prob cooperation for each context CC, CD, DC, DD
-            prob cooperation for each context [C, D]**3
-            mean score
-            score deviation
-            mean wins
-            wins deviation
-    """
-    pass
-
-
 """Todo:
-save aggregrated data to csv
-big tables
+tournament_data
+append to big table 2
 """
 
 if __name__ == "__main__":
     init()
     turns, repetitions, noise, function, gen_data = parse_args()
-    print gen_data
 
     # Grab the strategy lists from axelrod
-    players = list(reversed(axelrod_strategies()))[:10]
+    # Take away the reversal
+    players = list(axelrod_strategies(meta=True))[:10]
+    players.append(axelrod.Random())
     opponents = list(players)
 
     # Generate the data?
     if gen_data:
-        save_all_match_results(players, turns=200, repetitions=1000)
-        exit()
+        save_all_match_results(players, turns=200, repetitions=1000, noise=noise)
+        aggregated_data_to_csv(players, opponents, noise=noise)
+        #big_table_1(players)
+        #big_table_2(players)
+        #exit()
 
+    # We're assuming that the data has been generated going forward
     # Visualizations
     make_figures(players, opponents, turns=turns, repetitions=repetitions,
                  noise=noise, function=function)
