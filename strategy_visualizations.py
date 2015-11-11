@@ -253,48 +253,6 @@ class ScoreDiffAggregator(object):
         return numpy.array(self.counts) / float(self.rows)
 
 
-
-#def iterate_plays(player, opponents, turns=200, repetitions=50, noise=0, aggClass=None):
-    #"""Runs many sequences of play to generate play data for computing the
-    #average score per turn for each opponent.
-
-    #For the given player and list of opponents, `repetitions` matches are played
-    #for each opponent and the results aggregated.
-
-    #"""
-    #tournament_attributes = {
-        #'length': turns,
-        #'game': axelrod.Game()}
-    #data = []
-    #for i, opponent in enumerate(opponents):
-        #aggregator = aggClass()
-        ## Check if the outcome will be deterministic. If so, only run one repetition
-        #if player.classifier['stochastic'] or opponent.classifier['stochastic'] or noise:
-            #repetitions_ = repetitions
-        #else:
-            #repetitions_ = 1
-        #for _ in range(repetitions_):
-            #player_ = player.clone()
-            #opponent_ = opponent.clone()
-            #player_.tournament_attributes = tournament_attributes
-            #opponent_.tournament_attributes = tournament_attributes
-
-            #for _ in range(turns):
-                #player_.play(opponent_, noise=noise)
-            #aggregator.add_data(player_.history, opponent_.history)
-
-            #player_.reset()
-            #opponent_.reset()
-        #averages = aggregator.normalize()
-        #data.append((i, averages))
-    #return data
-
-#def apply_aggregator(data, aggregator):
-    #for row in data:
-        #history1, history2 = unzip(row)
-        #aggregator.add_data(history1, history2)
-    #return aggregator.normalize()
-
 def aggregated_data(player, opponents, aggClass=None):
     """Aggregates cached data for player versus every opponent for plotting."""
     data = []
@@ -330,7 +288,7 @@ def aggregated_data_to_csv(player, opponents, aggClass=None):
             csv_row = ["".join(element) for element in row]
             writer.writerow(csv_row)
 
-
+# Make Figures
 
 def visualize_strategy(data, player, opponents, directory, turns=200,
                        repetitions=200, noise=0, cmap=None, sort=False,
@@ -432,19 +390,47 @@ def init():
         path = Path("assets") / "heatmaps" / (sub + "-noisy")
         ensure_directory(str(path))
 
-def generate_data(players):
-    save_all_match_results(players, turns=200, repetitions=1000)
+def summarize_match():
+    pass
+
+def big_tables():
+    """Table 1:
+    For each strategy pair, compute the probability of cooperation on the
+    first 10 rounds, the mean, median, and deviation for scores, wins, and
+    score diffs, probabilities for each context C, D, CC, CD, DC, DD, ...,
+    overall C and D
+
+
+    Table 2: for each strategy:
+        name
+        memory depth
+        is_stochastic
+        average over all strategies:
+            prob cooperation on first 5 moves
+            prob cooperation on last 5 moves
+            prob cooperation for each context C, D
+            prob cooperation for each context CC, CD, DC, DD
+            prob cooperation for each context [C, D]**3
+            mean score
+            score deviation
+            mean wins
+            wins deviation
+    """
+    pass
+
 
 """Todo:
 save aggregrated data to csv
+big tables
 """
 
 if __name__ == "__main__":
     init()
     turns, repetitions, noise, function, gen_data = parse_args()
+    print gen_data
 
     # Grab the strategy lists from axelrod
-    players = list(reversed(axelrod_strategies()))
+    players = list(reversed(axelrod_strategies()))[:10]
     opponents = list(players)
 
     # Generate the data?
