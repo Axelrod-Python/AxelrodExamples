@@ -21,7 +21,7 @@ from matplotlib import pyplot, gridspec
 
 import axelrod
 
-from example_tournaments import axelrod_strategies, ensure_directory
+from example_tournaments import axelrod_strategies, ensure_directory, run_tournament
 
 C, D = "C", "D"
 
@@ -93,7 +93,7 @@ def unzip(l):
 
 ## Generate match results and cache to CSV
 
-def csv_filename(player, opponent, noise=False):
+def csv_filename(player, opponent, noise=None):
     """Provides a standardized filename for storing and loading match data."""
     filename = "{}--{}.csv".format(normalized_name(player), normalized_name(opponent))
     if noise:
@@ -116,12 +116,12 @@ def load_match_csv(player, opponent, noise=None):
     path = Path(filename)
     # Check to see if data exists for the other permutation
     if not path.exists():
-        reverse = True
         filename = csv_filename(opponent, player, noise=noise)
         path = Path(filename)
         # No match data exists for these two players
-        if not path.exists:
+        if not path.exists():
             raise FileNotFoundError("No match data found")
+        reverse = True
     with path.open('r') as csvfile:
         reader = csv.reader(csvfile)
         # Separate the plays in each round, handle reversing
@@ -168,15 +168,18 @@ def generate_match_results(player, opponent, turns=200, repetitions=100,
             player.play(opponent, noise=noise)
         yield zip(player.history, opponent.history)
 
+def is_deterministic(p1, p2, noise=0):
+    return not (p1.classifier['stochastic'] or p2.classifier['stochastic'] or noise)
+
 def save_all_match_results(players, turns=200, repetitions=100, noise=0):
     """Caches match results for all pairs of players"""
     for p1, p2 in itertools.combinations_with_replacement(players, 2):
         print(p1, p2)
-        # Check if the outcome will be deterministic. If so, only run one repetition
-        if p1.classifier['stochastic'] or p2.classifier['stochastic'] or noise:
-            repetitions_ = repetitions
-        else:
+        ## Check if the outcome will be deterministic. If so, only run one repetition
+        if is_deterministic(p1, p2, noise):
             repetitions_ = 1
+        else:
+            repetitions_ = repetitions
         data = generate_match_results(p1, p2, turns=turns,
                                         repetitions=repetitions_, noise=noise)
         filename = csv_filename(p1, p2, noise=noise)
@@ -368,8 +371,6 @@ def make_figures(strategies, opponents, turns=200, repetitions=50,
     for index, player in enumerate(strategies):
         print(index, function, player)
         data = aggregated_data(player, opponents, aggClass=aggClass, noise=noise)
-        #data = iterate_plays(strategy, opponents, turns=turns, aggClass=aggClass,
-                             #repetitions=repetitions, noise=noise)
 
         visualize_strategy(data, player, opponents, directory=str(path), noise=noise,
                            cmap=cmap, vmin=vmin, vmax=vmax)
@@ -382,6 +383,7 @@ def summarize_matchup(player, opponent, initial=10):
     score_diffs = []
     match_data = load_match_csv(player, opponent)
     context_dict = defaultdict(float)
+    context_counts = defaultdict(float)
     initial_plays = [0] * initial
     total_plays = 0
     total_matches = 0
@@ -398,18 +400,25 @@ def summarize_matchup(player, opponent, initial=10):
             score += s[0]
             score_diff += s[0] - s[1]
             if play1 == "C":
-                context_dict[''] += 1
+                context_dict["no_context"] += 1
         scores.append(score)
         score_diffs.append(score_diff)
 
         # The rest of the contexts
-        for i, (play1, play2) in enumerate(row[1:]):
-            if play1 == "C":
-                context_dict[row[i - 1]] += 1
-        for i, (play1, play2) in enumerate(row[2:]):
-            if play1 == "C":
-                key = (row[i - 2], row[i - 1])
+        for i in range(1, len(row)):
+            plays = row[i]
+            key = row[i - 1]
+            context_counts[key] += 1
+            if plays[0] == "C":
                 context_dict[key] += 1
+
+        for i in range(2, len(row)):
+            plays = row[i]
+            key = (row[i - 2], row[i - 1])
+            context_counts[key] += 1
+            if play1 == "C":
+                context_dict[key] += 1
+
         # initial_plays
         for i in range(len(initial_plays)):
             play = row[i][0]
@@ -417,12 +426,20 @@ def summarize_matchup(player, opponent, initial=10):
                 initial_plays[i] += 1
     # normalize and take means
     initial_plays = numpy.array(initial_plays) / float(total_matches)
-    context_dict[""] /= float(total_plays)
+    context_dict["no_context"] /= float(total_plays)
     contexts = [(C, C), (C, D), (D, C), (D, D)]
+
     for context in contexts:
-        context_dict[context] /= float(total_matches) * (match_length - 1)
+        try:
+            context_dict[context] /= context_counts[context]
+        except ZeroDivisionError:
+            context_dict[context] = "NA"
     for context in itertools.product(contexts, repeat=2):
-        context_dict[context] /= float(total_matches) * (match_length - 2)
+        try:
+            context_dict[context] /= context_counts[context]
+        except ZeroDivisionError:
+            context_dict[context] = "NA"
+
     scores = numpy.array(scores) / float(match_length)
     mean_score = numpy.mean(scores)
     std_score = numpy.std(scores)
@@ -430,8 +447,14 @@ def summarize_matchup(player, opponent, initial=10):
     mean_score_diff = numpy.mean(score_diffs)
     std_score_diff = numpy.std(score_diffs)
 
-    return (initial_plays, context_dict, mean_score, std_score,
-            mean_score_diff, std_score_diff)
+    for key in context_counts.keys():
+        if key == "no_context":
+            continue
+        total = sum([float(v) for (k, v) in context_counts.items() if len(k[0]) == len(key[0])])
+    context_counts[key] /= total
+
+    return (initial_plays, context_dict, context_counts, mean_score,
+            std_score, mean_score_diff, std_score_diff)
 
 def big_table_1(players, initial=10):
     """Table 1:
@@ -444,49 +467,58 @@ def big_table_1(players, initial=10):
 
     rows = []
     contexts = [(C, C), (C, D), (D, C), (D, D)]
-    context_keys = [""]
-    context_keys.extend(context_keys)
+    context_keys = ["no_context"]
+    context_keys.extend(contexts)
     context_keys.extend(itertools.product(contexts, repeat=2))
 
-    header = ["player_name", "opponent_name", "stochastic", "memory_depth",
+    header = ["player_name", "opponent_name",
               "mean_score", "std_score", "mean_score_diff", "std_score_diff"]
     header.extend(["round_" + str(i) for i in range(initial)])
     header.append("_")
     header.extend(["".join(x) for x in contexts])
-    header.extend(["".join(x) + "".join(y) for (x, y) in itertools.product(contexts, repeat=2)])
-
+    header.extend(["".join(x) + "".join(y) for (x, y) in
+                   itertools.product(contexts, repeat=2)])
+    header.extend(["".join(x) + "_pct" for x in contexts])
+    header.extend(["".join(x) + "".join(y) + "_pct"  for (x, y) in
+                   itertools.product(contexts, repeat=2)])
     writer.writerow(header)
 
     for p1 in players:
         for p2 in players:
-            (initial_plays, context_dict, mean_score, std_score,
-            mean_score_diff, std_score_diff) = summarize_matchup(p1, p2,
-                                                                 initial=initial)
+            (initial_plays, context_dict, context_counts, mean_score, std_score, mean_score_diff, std_score_diff) = summarize_matchup(p1, p2, initial=initial)
             row = [normalized_name(p1), normalized_name(p2),
-                   p1.classifier["stochastic"], p1.classifier["memory_depth"],
                    mean_score, std_score, mean_score_diff, std_score_diff]
             row.extend(initial_plays)
             for key in context_keys:
                 row.append(context_dict[key])
+            for key in context_keys:
+                row.append(context_counts[key])
             writer.writerow(row)
 
-
-def summarize_player(player, opponents, initial=10):
+def summarize_player(player, opponents, initial=10, matches=1000):
     game = axelrod.Game()
     scores = []
     score_diffs = []
     context_dict = defaultdict(float)
+    context_counts = defaultdict(float)
     initial_plays = [0] * initial
     total_plays = 0
     total_matches = 0
     match_length = 0
 
     for opponent in opponents:
-        match_data = load_match_csv(player, opponent)
+        # For deterministic matches, we only run one round
+        # However we want each matchup to contribute equally
+        if is_deterministic(player, opponent):
+            multiplier = matches
+        else:
+            multiplier = 1
+        match_data = list(load_match_csv(player, opponent))
+
         for row in match_data:
             match_length = len(row) # assumes all are equal
-            total_matches += 1
-            total_plays += len(row)
+            total_matches += multiplier
+            total_plays += len(row) * multiplier
             score = 0
             score_diff = 0
             for play1, play2 in row:
@@ -494,39 +526,61 @@ def summarize_player(player, opponents, initial=10):
                 score += s[0]
                 score_diff += s[0] - s[1]
                 if play1 == "C":
-                    context_dict[''] += 1
+                    context_dict["no_context"] += multiplier
             scores.append(score)
             score_diffs.append(score_diff)
 
-            # The rest of the contexts
-            for i, (play1, play2) in enumerate(row[1:]):
-                if play1 == "C":
-                    context_dict[row[i - 1]] += 1
-            for i, (play1, play2) in enumerate(row[2:]):
-                if play1 == "C":
-                    key = (row[i - 2], row[i - 1])
-                    context_dict[key] += 1
+            # The rest of the contexts: CC, CD, DC, DD
+            for i in range(1, len(row)):
+                plays = row[i]
+                key = row[i - 1]
+                context_counts[key] += multiplier
+                if plays[0] == "C":
+                    context_dict[key] += multiplier
+
+            # Two-round Contexts
+            for i in range(2, len(row)):
+                plays = row[i]
+                key = (row[i - 2], row[i - 1])
+                context_counts[key] += multiplier
+                if plays[0] == "C":
+                    context_dict[key] += multiplier
+
             # initial_plays
             for i in range(len(initial_plays)):
                 play = row[i][0]
                 if play == "C":
-                    initial_plays[i] += 1
+                    initial_plays[i] += multiplier
+
     # normalize and take means
-    initial_plays = numpy.array(initial_plays) / (float(total_matches) * len(opponents))
-    context_dict[""] /= float(total_plays)
+    initial_plays = numpy.array(initial_plays) / float(total_matches)
+    context_dict["no_context"] /= float(match_length * total_matches)
     contexts = [(C, C), (C, D), (D, C), (D, D)]
     for context in contexts:
-        context_dict[context] /= float(total_matches) * (match_length - 1) * len(opponents)
+        try:
+            context_dict[context] /= context_counts[context]
+        except ZeroDivisionError:
+            context_dict[context] = "NA"
     for context in itertools.product(contexts, repeat=2):
-        context_dict[context] /= float(total_matches) * (match_length - 2) * len(opponents)
-    scores = numpy.array(scores) / (float(match_length) * len(opponents))
+        try:
+            context_dict[context] /= context_counts[context]
+        except ZeroDivisionError:
+            context_dict[context] = "NA"
+
+    scores = numpy.array(scores) / (float(match_length))
     mean_score = numpy.mean(scores)
     std_score = numpy.std(scores)
-    score_diffs = numpy.array(score_diffs) / (float(match_length) * len(opponents))
+    score_diffs = numpy.array(score_diffs) / (float(match_length))
     mean_score_diff = numpy.mean(score_diffs)
     std_score_diff = numpy.std(score_diffs)
 
-    return (initial_plays, context_dict, mean_score, std_score,
+    for key in context_counts.keys():
+        if key == "no_context":
+            continue
+        total = sum([float(v) for (k, v) in context_counts.items() if len(k[0]) == len(key[0])])
+    context_counts[key] /= total
+
+    return (initial_plays, context_dict, context_counts, mean_score, std_score,
             mean_score_diff, std_score_diff)
 
 def big_table_2(players, initial=10):
@@ -544,13 +598,15 @@ def big_table_2(players, initial=10):
 
     """
 
+    tournament_data = list(load_tournament_data())
+
     path = Path("assets") / "csv" / "table_2.csv"
     writer = csv.writer(path.open('w'))
 
     rows = []
     contexts = [(C, C), (C, D), (D, C), (D, D)]
-    context_keys = [""]
-    context_keys.extend(context_keys)
+    context_keys = ["no_context"]
+    context_keys.extend(contexts)
     context_keys.extend(itertools.product(contexts, repeat=2))
 
     header = ["player_name", "stochastic", "memory_depth",
@@ -558,35 +614,67 @@ def big_table_2(players, initial=10):
     header.extend(["round_" + str(i) for i in range(initial)])
     header.append("_")
     header.extend(["".join(x) for x in contexts])
-    header.extend(["".join(x) + "".join(y) for (x, y) in itertools.product(contexts, repeat=2)])
+    header.extend(["".join(x) + "".join(y) for (x, y) in
+                   itertools.product(contexts, repeat=2)])
+    header.extend(["".join(x) + "_pct" for x in contexts])
+    header.extend(["".join(x) + "".join(y) + "_pct"  for (x, y) in
+                   itertools.product(contexts, repeat=2)])
+
+    header.extend(["tournament_score_mean", "tournament_score_std",
+                   "tournament_win_mean", "tournament_win_std"])
 
     writer.writerow(header)
 
-    for p1 in players:
-        (initial_plays, context_dict, mean_score, std_score,
-        mean_score_diff, std_score_diff) = summarize_player(p1, players,
-                                                                initial=initial)
+    for i, p1 in enumerate(players):
+        print(i, "of", len(players))
+        (initial_plays, context_dict, context_counts, mean_score,
+         std_score, mean_score_diff, std_score_diff) = summarize_player(p1, players, initial=initial)
         row = [normalized_name(p1),
                 p1.classifier["stochastic"], p1.classifier["memory_depth"],
                 mean_score, std_score, mean_score_diff, std_score_diff]
         row.extend(initial_plays)
         for key in context_keys:
             row.append(context_dict[key])
+        for key in context_keys:
+            row.append(context_counts[key])
+        row.extend(tournament_data[i][1:]) # ignore name (first element)
         writer.writerow(row)
 
-#def tournament_data(players):
-    #"""
-    #for each strategy:
-        #mean score
-        #mean wins
-        #wins deviation
-        #score deviation
-    #"""
-    #data = []
-    #results = run_tournament("--", players)
-    #for player in players:
-        #row = []
-    #pass
+def tournament_data(players, turns=200, repetitions=100):
+    """
+    Run tournaments with repetition and record the following:
+        mean score
+        mean wins
+        wins deviation
+        score deviation
+    """
+    results = run_tournament("--", players, turns=turns, repetitions=repetitions)
+    score_data = results.normalised_scores
+    win_data = results.wins
+    mean_scores = [numpy.mean(s) for s in score_data]
+    std_scores = [numpy.std(s) for s in score_data]
+    mean_wins = [numpy.mean(w) for w in win_data]
+    std_wins = [numpy.std(w) for w in win_data]
+    return (mean_scores, std_scores, mean_wins, std_wins)
+
+def save_tournament_data(players, turns=200, repetitions=100):
+    (mean_scores, std_scores, mean_wins, std_wins) = tournament_data(
+        players, turns=200, repetitions=100)
+    path = Path("assets") / "csv" / "tournament.csv"
+    with path.open('w') as csvfile:
+        writer = csv.writer(csvfile)
+        for i, player in enumerate(players):
+            row = [normalized_name(player), mean_scores[i], std_scores[i],
+                   mean_wins[i], std_wins[i]]
+            writer.writerow(row)
+
+def load_tournament_data():
+    path = Path("assets") / "csv" / "tournament.csv"
+    with path.open('r') as csvfile:
+        reader = csv.reader(csvfile)
+        for row in reader:
+            yield row
+
 
 def init():
     # Check python version
@@ -616,10 +704,8 @@ def init():
         path = Path("assets") / "heatmaps" / (sub + "-noisy")
         ensure_directory(str(path))
 
-"""Todo:
-tournament_data
-append to big table 2
-"""
+
+"Todo: average first D."
 
 if __name__ == "__main__":
     init()
@@ -627,17 +713,23 @@ if __name__ == "__main__":
 
     # Grab the strategy lists from axelrod
     # Take away the reversal
-    players = list(axelrod_strategies(meta=True))[:10]
-    players.append(axelrod.Random())
+    #players = list(axelrod_strategies(meta=True))
+    players = list(reversed(axelrod_strategies()))
     opponents = list(players)
+
+    #save_tournament_data(players)
+    #big_table_1(players)
+    big_table_2(players)
+    exit()
 
     # Generate the data?
     if gen_data:
         save_all_match_results(players, turns=200, repetitions=1000, noise=noise)
         aggregated_data_to_csv(players, opponents, noise=noise)
-        #big_table_1(players)
-        #big_table_2(players)
-        #exit()
+        save_tournament_data(players)
+        big_table_1(players)
+        big_table_2(players)
+        exit()
 
     # We're assuming that the data has been generated going forward
     # Visualizations
