@@ -6,10 +6,10 @@ from example_tournaments import axelrod_strategies
 strategy_names = list(map(str, axelrod_strategies()))
 strategy_names = [x.replace('/', '-') for x in strategy_names]
 
-heatmap_types_names = [("cooperation_heatmaps", "Cooperation Rate Heatmap"),
-                       ("opponent_cooperation_heatmaps", "Opponent Cooperation Rate Heatmap"),
-                       ("score_heatmaps", "Mean Score Heatmap"),
-                       ("score_diff_heatmaps", "Mean Score Difference Heatmap")]
+heatmap_types_names = [("cooperation", "Cooperation Rate Heatmap"),
+                       ("opponent_cooperation", "Opponent Cooperation Rate Heatmap"),
+                       ("score", "Mean Score Heatmap"),
+                       ("score_diff", "Mean Score Difference Heatmap")]
 
 # Render individual strategy pages
 for strategy_name in strategy_names:
