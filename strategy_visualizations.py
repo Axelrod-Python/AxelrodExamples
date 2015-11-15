@@ -7,7 +7,7 @@ Requires python 3.4+
 """
 
 import argparse
-from collections import defaultdict
+from collections import Counter, defaultdict
 import csv # python 3+ usage
 import itertools
 from operator import itemgetter, attrgetter
@@ -71,6 +71,17 @@ def parse_args():
             args.function, args.data)
 
 # Various helpers
+
+def counter_mean(counter):
+    """Takes the mean of a collections.Counter object (or dictionary)."""
+    mean = 0.
+    total = 0.
+    for k, v in counter.items():
+        if k <= 0:
+            k = 200
+        mean += k * v
+        total += v
+    return mean / total
 
 def normalized_name(player):
     """Normalizes the player name."""
@@ -388,6 +399,7 @@ def summarize_matchup(player, opponent, initial=10):
     total_plays = 0
     total_matches = 0
     match_length = 0
+    first_defection = defaultdict(int)
 
     for row in match_data:
         match_length = len(row) # assumes all are equal
@@ -400,7 +412,7 @@ def summarize_matchup(player, opponent, initial=10):
             score += s[0]
             score_diff += s[0] - s[1]
             if play1 == "C":
-                context_dict["no_context"] += 1
+                context_dict["C_prob"] += 1
         scores.append(score)
         score_diffs.append(score_diff)
 
@@ -424,9 +436,15 @@ def summarize_matchup(player, opponent, initial=10):
             play = row[i][0]
             if play == "C":
                 initial_plays[i] += 1
+
+        # First defection
+        my_history = "".join([x[0] for x in row])
+        first_occurrence = my_history.find('D')
+        first_defection[first_occurrence + 1] += 1
+
     # normalize and take means
     initial_plays = numpy.array(initial_plays) / float(total_matches)
-    context_dict["no_context"] /= float(total_plays)
+    context_dict["C_prob"] /= float(total_plays)
     contexts = [(C, C), (C, D), (D, C), (D, D)]
 
     for context in contexts:
@@ -440,6 +458,12 @@ def summarize_matchup(player, opponent, initial=10):
         except ZeroDivisionError:
             context_dict[context] = "NA"
 
+    for key in context_counts.keys():
+        if key == "C_prob":
+            continue
+        total = sum([float(v) for (k, v) in context_counts.items() if len(k[0]) == len(key[0])])
+        context_counts[key] /= total
+
     scores = numpy.array(scores) / float(match_length)
     mean_score = numpy.mean(scores)
     std_score = numpy.std(scores)
@@ -447,16 +471,13 @@ def summarize_matchup(player, opponent, initial=10):
     mean_score_diff = numpy.mean(score_diffs)
     std_score_diff = numpy.std(score_diffs)
 
-    for key in context_counts.keys():
-        if key == "no_context":
-            continue
-        total = sum([float(v) for (k, v) in context_counts.items() if len(k[0]) == len(key[0])])
-    context_counts[key] /= total
+    mean_first_defection = counter_mean(first_defection)
 
     return (initial_plays, context_dict, context_counts, mean_score,
-            std_score, mean_score_diff, std_score_diff)
+            std_score, mean_score_diff, std_score_diff, mean_first_defection)
 
-def big_table_1(players, initial=10):
+
+def table_1(players, initial=10):
     """Table 1:
     For each strategy pair, compute the probability of cooperation on the
     first 10 rounds, the mean, median, and deviation for scores, and
@@ -467,14 +488,15 @@ def big_table_1(players, initial=10):
 
     rows = []
     contexts = [(C, C), (C, D), (D, C), (D, D)]
-    context_keys = ["no_context"]
+    context_keys = ["C_prob"]
     context_keys.extend(contexts)
     context_keys.extend(itertools.product(contexts, repeat=2))
 
-    header = ["player_name", "opponent_name",
-              "mean_score", "std_score", "mean_score_diff", "std_score_diff"]
-    header.extend(["round_" + str(i) for i in range(initial)])
-    header.append("_")
+    header = ["player_name", "opponent_name",  "stochastic", "memory_depth",
+              "mean_score", "std_score", "mean_score_diff", "std_score_diff",
+              "mean_first_defection"]
+    header.extend(["round_" + str(i+1) for i in range(initial)])
+    header.append("C_prob")
     header.extend(["".join(x) for x in contexts])
     header.extend(["".join(x) + "".join(y) for (x, y) in
                    itertools.product(contexts, repeat=2)])
@@ -485,13 +507,17 @@ def big_table_1(players, initial=10):
 
     for p1 in players:
         for p2 in players:
-            (initial_plays, context_dict, context_counts, mean_score, std_score, mean_score_diff, std_score_diff) = summarize_matchup(p1, p2, initial=initial)
+            (initial_plays, context_dict, context_counts, mean_score, std_score, mean_score_diff, std_score_diff, mean_first_defection) = summarize_matchup(p1, p2, initial=initial)
             row = [normalized_name(p1), normalized_name(p2),
-                   mean_score, std_score, mean_score_diff, std_score_diff]
+                   p1.classifier["stochastic"], p1.classifier["memory_depth"],
+                   mean_score, std_score, mean_score_diff, std_score_diff,
+                   mean_first_defection]
             row.extend(initial_plays)
             for key in context_keys:
                 row.append(context_dict[key])
             for key in context_keys:
+                if key == "C_prob":
+                    continue
                 row.append(context_counts[key])
             writer.writerow(row)
 
@@ -505,6 +531,7 @@ def summarize_player(player, opponents, initial=10, matches=1000):
     total_plays = 0
     total_matches = 0
     match_length = 0
+    first_defection = Counter()
 
     for opponent in opponents:
         # For deterministic matches, we only run one round
@@ -526,7 +553,7 @@ def summarize_player(player, opponents, initial=10, matches=1000):
                 score += s[0]
                 score_diff += s[0] - s[1]
                 if play1 == "C":
-                    context_dict["no_context"] += multiplier
+                    context_dict["C_prob"] += multiplier
             scores.append(score)
             score_diffs.append(score_diff)
 
@@ -552,9 +579,14 @@ def summarize_player(player, opponents, initial=10, matches=1000):
                 if play == "C":
                     initial_plays[i] += multiplier
 
+            # First defection
+            my_history = "".join([x[0] for x in row])
+            first_occurrence = my_history.find('D')
+            first_defection[first_occurrence] += multiplier
+
     # normalize and take means
     initial_plays = numpy.array(initial_plays) / float(total_matches)
-    context_dict["no_context"] /= float(match_length * total_matches)
+    context_dict["C_prob"] /= float(match_length * total_matches)
     contexts = [(C, C), (C, D), (D, C), (D, D)]
     for context in contexts:
         try:
@@ -567,6 +599,12 @@ def summarize_player(player, opponents, initial=10, matches=1000):
         except ZeroDivisionError:
             context_dict[context] = "NA"
 
+    for key in context_counts.keys():
+        if key == "C_prob":
+            continue
+        total = sum([float(v) for (k, v) in context_counts.items() if len(k[0]) == len(key[0])])
+        context_counts[key] /= total
+
     scores = numpy.array(scores) / (float(match_length))
     mean_score = numpy.mean(scores)
     std_score = numpy.std(scores)
@@ -574,16 +612,12 @@ def summarize_player(player, opponents, initial=10, matches=1000):
     mean_score_diff = numpy.mean(score_diffs)
     std_score_diff = numpy.std(score_diffs)
 
-    for key in context_counts.keys():
-        if key == "no_context":
-            continue
-        total = sum([float(v) for (k, v) in context_counts.items() if len(k[0]) == len(key[0])])
-    context_counts[key] /= total
+    mean_first_defection = counter_mean(first_defection)
 
     return (initial_plays, context_dict, context_counts, mean_score, std_score,
-            mean_score_diff, std_score_diff)
+            mean_score_diff, std_score_diff, mean_first_defection)
 
-def big_table_2(players, initial=10):
+def table_2(players, initial=10):
     """
     Table 2: for each strategy:
         name
@@ -595,7 +629,6 @@ def big_table_2(players, initial=10):
             prob cooperation for each context C, D
             prob cooperation for each context CC, CD, DC, DD
             prob cooperation for each context [C, D]**3
-
     """
 
     tournament_data = list(load_tournament_data())
@@ -605,14 +638,15 @@ def big_table_2(players, initial=10):
 
     rows = []
     contexts = [(C, C), (C, D), (D, C), (D, D)]
-    context_keys = ["no_context"]
+    context_keys = ["C_prob"]
     context_keys.extend(contexts)
     context_keys.extend(itertools.product(contexts, repeat=2))
 
     header = ["player_name", "stochastic", "memory_depth",
-              "mean_score", "std_score", "mean_score_diff", "std_score_diff"]
-    header.extend(["round_" + str(i) for i in range(initial)])
-    header.append("_")
+              "mean_score", "std_score", "mean_score_diff", "std_score_diff",
+              "mean_first_defection"]
+    header.extend(["round_" + str(i+1) for i in range(initial)])
+    header.append("C_prob")
     header.extend(["".join(x) for x in contexts])
     header.extend(["".join(x) + "".join(y) for (x, y) in
                    itertools.product(contexts, repeat=2)])
@@ -628,14 +662,16 @@ def big_table_2(players, initial=10):
     for i, p1 in enumerate(players):
         print(i, "of", len(players))
         (initial_plays, context_dict, context_counts, mean_score,
-         std_score, mean_score_diff, std_score_diff) = summarize_player(p1, players, initial=initial)
+         std_score, mean_score_diff, std_score_diff, mean_first_defection) = summarize_player(p1, players, initial=initial)
         row = [normalized_name(p1),
                 p1.classifier["stochastic"], p1.classifier["memory_depth"],
-                mean_score, std_score, mean_score_diff, std_score_diff]
+                mean_score, std_score, mean_score_diff, std_score_diff, mean_first_defection]
         row.extend(initial_plays)
         for key in context_keys:
             row.append(context_dict[key])
         for key in context_keys:
+            if key == "C_prob":
+                continue
             row.append(context_counts[key])
         row.extend(tournament_data[i][1:]) # ignore name (first element)
         writer.writerow(row)
@@ -704,22 +740,17 @@ def init():
         path = Path("assets") / "heatmaps" / (sub + "-noisy")
         ensure_directory(str(path))
 
-
-"Todo: average first D."
-
 if __name__ == "__main__":
     init()
     turns, repetitions, noise, function, gen_data = parse_args()
 
     # Grab the strategy lists from axelrod
-    # Take away the reversal
-    #players = list(axelrod_strategies(meta=True))
+    # players = list(axelrod_strategies(meta=True))
     players = list(reversed(axelrod_strategies()))
     opponents = list(players)
 
-    #save_tournament_data(players)
-    #big_table_1(players)
-    big_table_2(players)
+    table_1(players)
+    table_2(players)
     exit()
 
     # Generate the data?
@@ -727,8 +758,8 @@ if __name__ == "__main__":
         save_all_match_results(players, turns=200, repetitions=1000, noise=noise)
         aggregated_data_to_csv(players, opponents, noise=noise)
         save_tournament_data(players)
-        big_table_1(players)
-        big_table_2(players)
+        table_1(players)
+        table_2(players)
         exit()
 
     # We're assuming that the data has been generated going forward
