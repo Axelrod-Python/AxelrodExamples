@@ -749,10 +749,6 @@ if __name__ == "__main__":
     players = list(reversed(axelrod_strategies()))
     opponents = list(players)
 
-    table_1(players)
-    table_2(players)
-    exit()
-
     # Generate the data?
     if gen_data:
         save_all_match_results(players, turns=200, repetitions=1000, noise=noise)
