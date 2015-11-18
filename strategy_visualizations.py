@@ -711,7 +711,6 @@ def load_tournament_data():
         for row in reader:
             yield row
 
-
 def init():
     # Check python version
     version = sys.version.split('.')

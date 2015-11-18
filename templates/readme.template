@@ -13,29 +13,29 @@ The first strategy visualization displays how often a strategy cooperates with
 every other strategy per round, averaged over many interactions (~200
 repeated games between every pair of strategies).
 
-[Cooperation Rate Heatmaps](/assets/heatmaps/cooperation)
+Cooperation Rate Heatmaps
 -------------------------
 
 <b>ZDGTFT2</b><br/>
 
 <div style="text-align:center">
 <p>Left: no noise | Right: 5% noise</p>
-<img src ="/assets/heatmaps/cooperation/ZD-GTFT-2.png" width="45%" alt="Cooperation Heatmap"/>
-<img src ="/assets/heatmaps/cooperation-noisy/ZD-GTFT-2.png" width="45%" alt="Cooperation Heatmap with 5% noise"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/cooperation/ZD-GTFT-2.png" width="45%" alt="Cooperation Heatmap"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/cooperation-noisy/ZD-GTFT-2.png" width="45%" alt="Cooperation Heatmap with 5% noise"/>
 </div>
 
 <b>Calculator</b><br/>
 
 <div style="text-align:center">
 <p>Left: no noise | Right: 5% noise</p>
-<img src ="/assets/heatmaps/cooperation/Calculator.png" width="45%" alt="Cooperation Heatmap"/>
-<img src ="/assets/heatmaps/cooperation-noisy/Calculator.png" width="45%" alt="Cooperation Heatmap with 5% noise"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/cooperation/Calculator.png" width="45%" alt="Cooperation Heatmap"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/cooperation-noisy/Calculator.png" width="45%" alt="Cooperation Heatmap with 5% noise"/>
 </div>
 
 As you can see, the introduction of noise alters the efficacy of Calculator's
 cycle detection algorithm.
 
-[Average Score Heatmaps](/assets/score_heatmaps/)
+Average Score Heatmaps
 ----------------------
 
 We can also visualize the average payoff per round earned by each strategy
@@ -46,16 +46,16 @@ repeated games between every pair of strategies).
 
 <div style="text-align:center">
 <p>Left: no noise | Right: 5% noise</p>
-<img src ="/assets/heatmaps/score/Alternator.png" width="45%" alt="Average Score Heatmap"/>
-<img src ="/assets/heatmaps/score-noisy/Alternator.png" width="45%" alt="Average Score Heatmap with 5% noise"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/score/Alternator.png" width="45%" alt="Average Score Heatmap"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/score-noisy/Alternator.png" width="45%" alt="Average Score Heatmap with 5% noise"/>
 </div>
 
 <b>Davis</b><br/>
 
 <div style="text-align:center">
 <p>Left: no noise | Right: 5% noise</p>
-<img src ="/assets/heatmaps/score/Davis.png" width="45%" alt="Average Score Heatmap"/>
-<img src ="/assets/heatmaps/score-noisy/Davis.png" width="45%" alt="Average Score Heatmap with 5% noise"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/score/Davis.png" width="45%" alt="Average Score Heatmap"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/score-noisy/Davis.png" width="45%" alt="Average Score Heatmap with 5% noise"/>
 </div>
 
 

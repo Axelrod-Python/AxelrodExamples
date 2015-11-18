@@ -7,7 +7,7 @@
 
 <div style="text-align:center">
 <p>Left: no noise | Right: 5% noise</p>
-<img src ="/assets/heatmaps/{{heatmap_directory}}/{{strategy_name}}.png" width="45%" alt="{{heatmap_name}}"/>
-<img src ="/assets/heatmaps/{{heatmap_directory}}-noisy/{{strategy_name}}.png" width="45%" alt="{{heatmap_name}} with 5% noise"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/{{heatmap_directory}}/{{strategy_name}}.png" width="45%" alt="{{heatmap_name}}"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/{{heatmap_directory}}-noisy/{{strategy_name}}.png" width="45%" alt="{{heatmap_name}} with 5% noise"/>
 </div>
 {% endfor %}
