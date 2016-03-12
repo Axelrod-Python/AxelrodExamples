@@ -23,24 +23,24 @@ echo "Score Visualizations, 0.05 noise (in background process)"
 python3 strategy_visualizations.py -t 200 -r 100 -n 0.05 -f s &
 echo "Opponent Cooperation Visualizations, 0.05 noise (in background process)"
 python3 strategy_visualizations.py -t 200 -r 100 -n 0.05 -f oc &
-echo "Stcore Difference Visualizations, 0.05 noise (in background process)"
+echo "Score Difference Visualizations, 0.05 noise (in background process)"
 python3 strategy_visualizations.py -t 200 -r 100 -n 0.05 -f sd &
 
 wait
 
-# # Noise-free Tournaments
-# echo "Small tournaments, no noise"
-# python example_tournaments.py -t 200 -r 500 -n 0.00 -p 4
-# echo "All strategies, no noise"
-# python example_tournaments.py -t 200 -r 100 -n 0.00 -p 4 -a
-# # Noisy Tournaments
-# echo "Small tournaments, 0.05 noise"
-# python example_tournaments.py -t 200 -r 500 -n 0.05 -p 4
-# echo "All strategies, 0.05 noise"
-# python example_tournaments.py -t 200 -r 100 -n 0.05 -p 4 -a
+# Noise-free Tournaments
+echo "Small tournaments, no noise"
+python example_tournaments.py -t 200 -r 500 -n 0.00 -p 4
+echo "All strategies, no noise"
+python example_tournaments.py -t 200 -r 100 -n 0.00 -p 4 -a
+# Noisy Tournaments
+echo "Small tournaments, 0.05 noise"
+python example_tournaments.py -t 200 -r 500 -n 0.05 -p 4
+echo "All strategies, 0.05 noise"
+python example_tournaments.py -t 200 -r 100 -n 0.05 -p 4 -a
 
 wait
 
-# python render_templates.py
+python render_templates.py
 
 echo "All tasks complete"
