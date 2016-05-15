@@ -172,8 +172,8 @@ def all_plots(label, results, filename_suffix, file_format, output_directory):
     f.savefig(filename)
     plt.close(f)
 
-def run_tournament(name, strategies, repetitions=100, with_ecological=False,
-               processes=None, rebuild_cache=True, noise=0, turns=200):
+def run_tournament(name, strategies, repetitions=100, turns=200, noise=0,
+                   processes=None):
     if not processes:
         processes = 3
 

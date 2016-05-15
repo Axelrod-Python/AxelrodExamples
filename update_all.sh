@@ -28,11 +28,11 @@
 #
 # wait
 
-# Noise-free Tournaments
-echo "Small tournaments, no noise"
-python example_tournaments.py -t 200 -r 50 -n 0.00 -p 4
-echo "All strategies, no noise"
-python example_tournaments.py -t 200 -r 50 -n 0.00 -p 4 -a
+# # Noise-free Tournaments
+# echo "Small tournaments, no noise"
+# python example_tournaments.py -t 200 -r 50 -n 0.00 -p 4
+# echo "All strategies, no noise"
+# python example_tournaments.py -t 200 -r 50 -n 0.00 -p 4 -a
 # Noisy Tournaments
 echo "Small tournaments, 0.05 noise"
 python example_tournaments.py -t 200 -r 50 -n 0.05 -p 4
