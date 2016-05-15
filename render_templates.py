@@ -29,10 +29,12 @@ plottypes_headers = [("boxplot", "Score Distributions"),
 
 
 tournament_info = [("AllFairStrategies", "All Fair Strategies", """This tournament covers all strategies in the Axelrod library that follow the standard Axelrod rules."""),
-                         ("FiniteMemory", "Finite Memory", """The players in this tournament are all strategies that remember a finite number of rounds (i.e. do not retain history indefinitely)."""),
-                         ("Memoryone", "Memory One", """The players in this tournament are all memoryone strategies (having memory depth 0 or 1)."""),
-                         ("StewartPlotkin2012", "Stewart & Plotkin 2012", """This tournament covers the same strategies in [Stewart and Plotkin's 2012 tournament](http://www.pnas.org/content/109/26/10134.full.pdf)"""),
-                         ( "tscizzle", "Tyler Singer-Clark","""This tournament's players are those used in Tyler Singer-Clark's paper [Morality Metrics On Iterated Prisoner's Dilemma Players](http://www.scottaaronson.com/morality.pdf)""")]
+    ("Deterministic", "Deterministic", """All deterministic strategies."""),
+    ("Stochastic", "Stochastic", """All stochastic strategies."""),
+    ("FiniteMemory", "Finite Memory", """The players in this tournament are all strategies that remember a finite number of rounds (i.e. do not retain history indefinitely)."""),
+    ("Memoryone", "Memory One", """The players in this tournament are all memoryone strategies (having memory depth 0 or 1)."""),
+    ("StewartPlotkin2012", "Stewart & Plotkin 2012", """This tournament covers the same strategies in [Stewart and Plotkin's 2012 tournament](http://www.pnas.org/content/109/26/10134.full.pdf)"""),
+    ( "tscizzle", "Tyler Singer-Clark","""This tournament's players are those used in Tyler Singer-Clark's paper [Morality Metrics On Iterated Prisoner's Dilemma Players](http://www.scottaaronson.com/morality.pdf)""")]
 
 template = env.get_template('readme.template')
 md = template.render(strategy_names=strategy_names,
