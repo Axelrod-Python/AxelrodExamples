@@ -10,9 +10,10 @@ import os
 import sys
 
 import numpy
+import matplotlib.pyplot as plt
 
 import axelrod
-
+axl = axelrod
 
 def ensure_directory(directory):
     """Makes sure that a directory exists and creates it if it does not."""
@@ -41,18 +42,22 @@ def axelrod_strategies(cheaters=False, meta=False, transformer=None):
     s.sort(key=str)
     return s
 
-def classic_strategies():
+def deterministic_strategies():
+    """Deterministic Strategies"""
 
-    strategies = [
-        axelrod.Cooperator(),
-        axelrod.Defector(),
-        axelrod.GTFT(),
-        axelrod.Grudger(),
-        axelrod.Random(),
-        axelrod.TitForTat(),
-        axelrod.TitFor2Tats(),
-        axelrod.WinStayLoseShift(),
-    ]
+    strategies = []
+    for s in axelrod_strategies():
+        if not s.classifier["stochastic"]:
+            strategies.append(s)
+    return strategies
+
+def stochastic_strategies():
+    """Stochastic Strategies"""
+
+    strategies = []
+    for s in axelrod_strategies():
+        if s.classifier["stochastic"]:
+            strategies.append(s)
     return strategies
 
 def finite_memory_strategies(lower=0, upper=float('inf')):
@@ -70,23 +75,6 @@ def memoryone_strategies():
     memory_depth 0 or 1."""
 
     return finite_memory_strategies(lower=0, upper=2)
-
-def first_axelrod_strategies():
-    """
-    The strategies in Axelrod's first tournament.
-    Warning: Incomplete!
-    """
-
-    strategies = [
-        axelrod.TitForTat(),
-        axelrod.Grofman(),
-        axelrod.Shubik(),
-        axelrod.Grudger(),
-        axelrod.Davis(),
-        axelrod.Joss(),
-        axelrod.Tullock()
-    ]
-    return strategies
 
 def tscizzle_strategies():
     """The list of strategies used in @tscizzle's Morality Metrics paper."""
@@ -110,8 +98,6 @@ def tscizzle_strategies():
         axelrod.Grudger(), # Friedman
         axelrod.Tester(),
         axelrod.SuspiciousTitForTat(),
-        #axelrod.Joss(0.1),
-        #axelrod.Joss(0.3),
         axelrod.Joss(0.9),
         axelrod.Joss(0.7),
 
@@ -145,26 +131,6 @@ def sp_strategies():
     ]
     return strategies
 
-#def axelrod_first():
-    #strategies = [
-        #axelrod.TitForTat(),
-        #axelrod.Random(),
-        #axelrod.Davis(),
-        #axelrod.RevisedDowning(),
-        #axelrod.Feld(),
-        #axelrod.Graaskamp(),
-        #axelrod.Grofman(),
-        #axelrod.Grudger(), # FRIEDMAN
-        #axelrod.Nydegger(),
-        #axelrod.Joss(),
-        #axelrod.Shubik(),
-        #axelrod.SteinRapoport(),
-        #axelrod.TidemanChieruzzi(),
-        #axelrod.Tullock(),
-        #axelrod.UnnamedStrategy()
-    #]
-    #return strategies
-
 def random_strategies():
     strategies = []
     for value in numpy.arange(0, 1.05, 0.05):
@@ -172,11 +138,44 @@ def random_strategies():
     return strategies
 
 
+def all_plots(label, results, filename_suffix, file_format, output_directory):
+    """Obtain all plots"""
+    plot = axl.Plot(results)
+
+    f = plot.boxplot(title="Payoff " + label)
+    filename = os.path.join(output_directory,
+                            "{}_boxplot.{}".format(filename_suffix, file_format))
+    f.savefig(filename)
+    plt.close(f)
+
+    f = plot.payoff(title="Payoff " + label)
+    filename = os.path.join(output_directory,
+                            "{}_payoff.{}".format(filename_suffix, file_format))
+    f.savefig(filename)
+    plt.close(f)
+
+    f = plot.winplot(title="Wins " + label)
+    filename = os.path.join(output_directory,
+                            "{}_winplot.{}".format(filename_suffix, file_format))
+    f.savefig(filename)
+    plt.close(f)
+
+    f = plot.sdvplot(title="Payoff differences " + label)
+    filename = os.path.join(output_directory,
+                            "{}_sdvplot.{}".format(filename_suffix, file_format))
+    f.savefig(filename)
+    plt.close(f)
+
+    f = plot.pdplot(title="Payoff differences " + label)
+    filename = os.path.join(output_directory,
+                            "{}_pdplot.{}".format(filename_suffix, file_format))
+    f.savefig(filename)
+    plt.close(f)
+
 def run_tournament(name, strategies, repetitions=100, with_ecological=False,
                processes=None, rebuild_cache=True, noise=0, turns=200):
     if not processes:
-        # Use them all!
-        processes = multiprocessing.cpu_count()
+        processes = 3
 
     # Make sure the output directories exist
     root_directory = os.path.join("assets", "tournaments")
@@ -184,15 +183,14 @@ def run_tournament(name, strategies, repetitions=100, with_ecological=False,
     ensure_directory(output_directory)
 
     # Set up a tournament manager
-    tm = axelrod.TournamentManager(output_directory=output_directory,
-                                   with_ecological=with_ecological,
-                                   save_cache=rebuild_cache)
-    tm.add_tournament(name, strategies, repetitions=repetitions, turns=turns,
-                      processes=processes, noise=noise)
-    # Run the tournaments
-    tm.run_tournaments()
-    results = tm._tournaments[0].result_set
-    return results
+    tournament = axelrod.Tournament(strategies, turns=turns,
+                                    repetitions=repetitions,
+                                    with_morality=False, noise=noise)
+    results = tournament.play(processes=processes)
+    # Make the plots
+    all_plots(label=name, results=results, filename_suffix=name,
+              file_format="svg", output_directory=output_directory)
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run Sample Axelrod tournaments")
@@ -242,7 +240,8 @@ if __name__ == "__main__":
         strategies_names = [(axelrod_strategies(cheaters=False), "AllFairStrategies")]
     else:
         strategies_names = [
-            #(axelrod_first(), "Axelrod First"),
+            (deterministic_strategies(), "Deterministic"),
+            (stochastic_strategies(), "Stochastic"),
             (memoryone_strategies(), "Memoryone"),
             (finite_memory_strategies(), "FiniteMemory"),
             (tscizzle_strategies(), "tscizzle"),
