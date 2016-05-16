@@ -85,8 +85,8 @@ Score Distributions
 
 <div style="text-align:center">
 <p>Left: no noise | Right: 5% noise</p>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/AllFairStrategies/AllFairStrategies_boxplot.svg" width="45%" alt="All Fair Strategies boxplot without noise"/>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/AllFairStrategies-noise/AllFairStrategies-noise_boxplot.svg" width="45%" alt="All Fair Strategies boxplot with5% noise"/>
+<img src="http://www.marcharper.codes/axelrod/tournaments/AllFairStrategies/AllFairStrategies_boxplot.svg" width="45%"/>
+<img src="http://www.marcharper.codes/axelrod/tournaments/AllFairStrategies-noise/AllFairStrategies-noise_boxplot.svg" width="45%"/>
 </div>
 
 Win Distributions
@@ -94,8 +94,8 @@ Win Distributions
 
 <div style="text-align:center">
 <p>Left: no noise | Right: 5% noise</p>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/AllFairStrategies/AllFairStrategies_winplot.svg" width="45%" alt="All Fair Strategies boxplot without noise"/>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/AllFairStrategies-noise/AllFairStrategies-noise_winplot.svg" width="45%" alt="All Fair Strategies boxplot with5% noise"/>
+<img src ="http://www.marcharper.codes/axelrod/tournaments/AllFairStrategies/AllFairStrategies_winplot.svg" width="45%"/>
+<img src ="http://www.marcharper.codes/axelrod/tournaments/AllFairStrategies-noise/AllFairStrategies-noise_winplot.svg" width="45%"/>
 </div>
 
 Pairwise Payoffs
@@ -103,8 +103,8 @@ Pairwise Payoffs
 
 <div style="text-align:center">
 <p>Left: no noise | Right: 5% noise</p>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/AllFairStrategies/AllFairStrategies_payoff.svg" width="45%" alt="All Fair Strategies boxplot without noise"/>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/AllFairStrategies-noise/AllFairStrategies-noise_payoff.svg" width="45%" alt="All Fair Strategies boxplot with5% noise"/>
+<img src ="http://www.marcharper.codes/axelrod/tournaments/AllFairStrategies/AllFairStrategies_payoff.svg" width="45%"/>
+<img src ="http://www.marcharper.codes/axelrod/tournaments/AllFairStrategies-noise/AllFairStrategies-noise_payoff.svg" width="45%"/>
 </div>
 
 

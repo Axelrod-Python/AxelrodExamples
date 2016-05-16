@@ -9,7 +9,7 @@
 
 <div style="text-align:center">
 <p>Left: no noise | Right: 5% noise</p>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/{{directory}}/{{directory}}_{{plottype}}.svg" width="45%" alt="{{tournament_name}} boxplot without noise"/>
-<img src ="https://cdn.rawgit.com/marcharper/AxelrodExamples/master/assets/tournaments/{{directory}}-noise/{{directory}}-noise_{{plottype}}.svg" width="45%" alt="{{tournament_name}} boxplot with5% noise"/>
+<img src ="http://www.marcharper.codes/axelrod/tournaments/{{directory}}/{{directory}}_{{plottype}}.svg" width="45%" alt="{{tournament_name}} boxplot without noise"/>
+<img src ="http://www.marcharper.codes/axelrod/tournaments/{{directory}}-noise/{{directory}}-noise_{{plottype}}.svg" width="45%" alt="{{tournament_name}} boxplot with5% noise"/>
 </div>
 {% endfor %}
