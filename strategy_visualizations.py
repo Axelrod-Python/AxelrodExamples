@@ -62,6 +62,7 @@ def parse_args():
 
     parser.add_argument(
         '-d', '--data',
+        default=False,
         action="store_true",
         help='Generate Data')
 
@@ -334,7 +335,11 @@ def visualize_strategy(data, player, opponents, directory, turns=200,
     # Plot the data in a pcolor colormap
     pyplot.clf()
     fig, ax = pyplot.subplots(figsize=(30, 15))
-    sm = ax.pcolor(data, cmap=cmap, vmin=vmin, vmax=vmax)
+    try:
+        sm = ax.pcolor(data, cmap=cmap, vmin=vmin, vmax=vmax)
+    except:
+        pyplot.close(fig)
+        return
     ax.set_ylim(0, len(opponents))
     yticks = [str(opponents[sort_order[i]]) for i in range(len(opponents))]
     ax.set_title(player_name)
@@ -750,8 +755,8 @@ if __name__ == "__main__":
 
     # Generate the data?
     if gen_data:
-        save_all_match_results(players, turns=200, repetitions=1000, noise=noise)
-        aggregated_data_to_csv(players, opponents, noise=noise)
+        # save_all_match_results(players, turns=200, repetitions=1000, noise=noise)
+        # aggregated_data_to_csv(players, opponents, noise=noise)
         save_tournament_data(players)
         table_1(players)
         table_2(players)

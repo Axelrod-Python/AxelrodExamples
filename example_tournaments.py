@@ -28,7 +28,8 @@ def ensure_directory(directory):
 def axelrod_strategies(cheaters=False, meta=False, transformer=None):
     """Obtains the list of strategies from Axelrod library."""
 
-    s = axelrod.ordinary_strategies
+    s = [s for s in axelrod.all_strategies if
+                      axelrod.obey_axelrod(s())]
     if cheaters:
         s.extend(axelrod.cheating_strategies)
     if not meta:
@@ -190,6 +191,7 @@ def run_tournament(name, strategies, repetitions=100, turns=200, noise=0,
     # Make the plots
     all_plots(label=name, results=results, filename_suffix=name,
               file_format="svg", output_directory=output_directory)
+    return results
 
 
 def parse_args():
