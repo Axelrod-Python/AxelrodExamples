@@ -5,15 +5,14 @@ https://github.com/marcharper/Axelrod
 """
 
 import argparse
-import multiprocessing
 import os
-import sys
 
 import numpy
 import matplotlib.pyplot as plt
 
 import axelrod
 axl = axelrod
+
 
 def ensure_directory(directory):
     """Makes sure that a directory exists and creates it if it does not."""
@@ -25,11 +24,11 @@ def ensure_directory(directory):
     if not os.path.isdir(directory):
         os.mkdir(directory)
 
+
 def axelrod_strategies(cheaters=False, meta=False, transformer=None):
     """Obtains the list of strategies from Axelrod library."""
 
-    s = [s for s in axelrod.all_strategies if
-                      axelrod.obey_axelrod(s())]
+    s = [s for s in axelrod.all_strategies if axelrod.obey_axelrod(s())]
     if cheaters:
         s.extend(axelrod.cheating_strategies)
     if not meta:
@@ -43,27 +42,27 @@ def axelrod_strategies(cheaters=False, meta=False, transformer=None):
     s.sort(key=str)
     return s
 
+
 def deterministic_strategies():
     """Deterministic Strategies"""
-
     strategies = []
     for s in axelrod_strategies():
         if not s.classifier["stochastic"]:
             strategies.append(s)
     return strategies
 
+
 def stochastic_strategies():
     """Stochastic Strategies"""
-
     strategies = []
     for s in axelrod_strategies():
         if s.classifier["stochastic"]:
             strategies.append(s)
     return strategies
 
+
 def finite_memory_strategies(lower=0, upper=float('inf')):
     """Filter strategies down to those that have finite memory_depth."""
-
     strategies = []
     for s in axelrod_strategies():
         memory_depth = s.classifier['memory_depth']
@@ -71,11 +70,13 @@ def finite_memory_strategies(lower=0, upper=float('inf')):
             strategies.append(s)
     return strategies
 
+
 def memoryone_strategies():
     """Filter strategies down to those that are memoryone, that is having
     memory_depth 0 or 1."""
 
     return finite_memory_strategies(lower=0, upper=2)
+
 
 def tscizzle_strategies():
     """The list of strategies used in @tscizzle's Morality Metrics paper."""
@@ -105,6 +106,7 @@ def tscizzle_strategies():
     ]
     return strategies
 
+
 def sp_strategies():
     """The list of strategies used in Stewart and Plotkin's 2012 tournament."""
 
@@ -131,6 +133,7 @@ def sp_strategies():
         axelrod.Calculator(),
     ]
     return strategies
+
 
 def random_strategies():
     strategies = []
@@ -172,6 +175,7 @@ def all_plots(label, results, filename_suffix, file_format, output_directory):
                             "{}_pdplot.{}".format(filename_suffix, file_format))
     f.savefig(filename)
     plt.close(f)
+
 
 def run_tournament(name, strategies, repetitions=100, turns=200, noise=0,
                    processes=None):

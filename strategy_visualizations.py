@@ -10,14 +10,14 @@ import argparse
 from collections import Counter, defaultdict
 import csv # python 3+ usage
 import itertools
-from operator import itemgetter, attrgetter
+from operator import itemgetter
 import os
-from pathlib import Path # python 3.4+
+from pathlib import Path
 import sys
 
 import numpy
 import matplotlib
-from matplotlib import pyplot, gridspec
+from matplotlib import pyplot
 
 import axelrod
 
@@ -25,11 +25,8 @@ from example_tournaments import axelrod_strategies, ensure_directory, run_tourna
 
 C, D = "C", "D"
 
-## Python 3.5
-#def ensure_directory(path):
-    #path.mkdir(parents=True, exist_ok=True)
+# Commandline arguments
 
-## Commandline arguments
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Run Sample Axelrod tournaments")
@@ -73,6 +70,7 @@ def parse_args():
 
 # Various helpers
 
+
 def counter_mean(counter):
     """Takes the mean of a collections.Counter object (or dictionary)."""
     mean = 0.
@@ -84,12 +82,14 @@ def counter_mean(counter):
         total += v
     return mean / total
 
+
 def normalized_name(player):
     """Normalizes the player name."""
     player_name = str(player)
     for char1, char2 in [('/', '-'), ('\\', ''), ('$', '')]:
         player_name = player_name.replace(char1, char2)
     return player_name
+
 
 def game_extremes():
     """Returns the max and min game matrix values to set the colorbar
@@ -98,12 +98,15 @@ def game_extremes():
     scores = game.RPST()
     return min(scores), max(scores)
 
+
 def unzip(l):
     """Unpacks a list of tuples pairwise to a lists of lists:
     [('a', 1), ('b', 2)] becomes [['a', 'b'], [1, 2]]"""
     return zip(*l)
 
+
 ## Generate match results and cache to CSV
+
 
 def csv_filename(player, opponent, noise=None):
     """Provides a standardized filename for storing and loading match data."""
@@ -113,6 +116,7 @@ def csv_filename(player, opponent, noise=None):
     else:
         path = Path("assets") / "csv" / "matches" / filename
     return path
+
 
 def load_match_csv(player, opponent, noise=None):
     """Loads a cached CSV file. Returns a list of lists of match plays:
@@ -143,6 +147,7 @@ def load_match_csv(player, opponent, noise=None):
         for row in reader:
             yield [(elem[index0], elem[index1]) for elem in row]
 
+
 def write_match_to_csv(data, filename, data_directory="csv"):
     """Takes match data (or a generator) and writes the data to a csv file."""
     #ensure_directory("csv")
@@ -153,7 +158,8 @@ def write_match_to_csv(data, filename, data_directory="csv"):
             csv_row = ["".join(element) for element in row]
             writer.writerow(csv_row)
 
-def generate_match_results(player, opponent, turns=200, repetitions=100,
+
+def generate_match_results(player, opponent, turns=200, repetitions=1000,
                            noise=None):
     """Generates match date between two players. Yields rows of the form
     [(C, D), (C, C), ...]."""
@@ -180,8 +186,10 @@ def generate_match_results(player, opponent, turns=200, repetitions=100,
             player.play(opponent, noise=noise)
         yield zip(player.history, opponent.history)
 
+
 def is_deterministic(p1, p2, noise=0):
     return not (p1.classifier['stochastic'] or p2.classifier['stochastic'] or noise)
+
 
 def save_all_match_results(players, turns=200, repetitions=100, noise=0):
     """Caches match results for all pairs of players"""
@@ -198,6 +206,7 @@ def save_all_match_results(players, turns=200, repetitions=100, noise=0):
         write_match_to_csv(data, filename)
 
 ## Classes to reduce the data sets in various ways
+
 
 class CooperationAggregator(object):
     """Aggregates the cooperation probability per round over many histories."""
@@ -290,6 +299,7 @@ def aggregated_data(player, opponents, aggClass=None, noise=None):
         data.append((i, averages))
     return data
 
+
 def aggregated_data_to_csv(players, opponents, noise=None):
     """Aggregates cached data for player versus every opponent for plotting."""
     for name, aggClass in [("score", ScoreAggregator),
@@ -313,6 +323,7 @@ def aggregated_data_to_csv(players, opponents, noise=None):
                     writer.writerow(csv_row)
 
 # Make Figures
+
 
 def visualize_strategy(data, player, opponents, directory, turns=200,
                        repetitions=200, noise=0, cmap=None, sort=False,
@@ -391,6 +402,7 @@ def make_figures(strategies, opponents, turns=200, repetitions=50,
         visualize_strategy(data, player, opponents, directory=str(path), noise=noise,
                            cmap=cmap, vmin=vmin, vmax=vmax)
         matplotlib.pyplot.close("all")
+
 
 def summarize_matchup(player, opponent, initial=10):
     """Compute various quantities of interest for the given matchup."""
@@ -491,7 +503,6 @@ def table_1(players, initial=10):
     path = Path("assets") / "csv" / "table_1.csv"
     writer = csv.writer(path.open('w'))
 
-    rows = []
     contexts = [(C, C), (C, D), (D, C), (D, D)]
     context_keys = ["C_prob"]
     context_keys.extend(contexts)
@@ -525,6 +536,7 @@ def table_1(players, initial=10):
                     continue
                 row.append(context_counts[key])
             writer.writerow(row)
+
 
 def summarize_player(player, opponents, initial=10, matches=1000):
     game = axelrod.Game()
@@ -622,6 +634,7 @@ def summarize_player(player, opponents, initial=10, matches=1000):
     return (initial_plays, context_dict, context_counts, mean_score, std_score,
             mean_score_diff, std_score_diff, mean_first_defection)
 
+
 def table_2(players, initial=10):
     """
     Table 2: for each strategy:
@@ -641,7 +654,6 @@ def table_2(players, initial=10):
     path = Path("assets") / "csv" / "table_2.csv"
     writer = csv.writer(path.open('w'))
 
-    rows = []
     contexts = [(C, C), (C, D), (D, C), (D, D)]
     context_keys = ["C_prob"]
     context_keys.extend(contexts)
@@ -681,6 +693,7 @@ def table_2(players, initial=10):
         row.extend(tournament_data[i][1:]) # ignore name (first element)
         writer.writerow(row)
 
+
 def tournament_data(players, turns=200, repetitions=100):
     """
     Run tournaments with repetition and record the following:
@@ -698,6 +711,7 @@ def tournament_data(players, turns=200, repetitions=100):
     std_wins = [numpy.std(w) for w in win_data]
     return (mean_scores, std_scores, mean_wins, std_wins)
 
+
 def save_tournament_data(players, turns=200, repetitions=100):
     (mean_scores, std_scores, mean_wins, std_wins) = tournament_data(
         players, turns=200, repetitions=100)
@@ -709,12 +723,14 @@ def save_tournament_data(players, turns=200, repetitions=100):
                    mean_wins[i], std_wins[i]]
             writer.writerow(row)
 
+
 def load_tournament_data():
     path = Path("assets") / "csv" / "tournament.csv"
     with path.open('r') as csvfile:
         reader = csv.reader(csvfile)
         for row in reader:
             yield row
+
 
 def init():
     # Check python version
@@ -748,15 +764,13 @@ if __name__ == "__main__":
     init()
     turns, repetitions, noise, function, gen_data = parse_args()
 
-    # Grab the strategy lists from axelrod
-    # players = list(axelrod_strategies(meta=True))
-    players = list(reversed(axelrod_strategies()))
-    opponents = list(players)
+    players = list(reversed(axelrod_strategies(meta=False)))
+    opponents = list(reversed(axelrod_strategies(meta=False)))
 
     # Generate the data?
     if gen_data:
-        # save_all_match_results(players, turns=200, repetitions=1000, noise=noise)
-        # aggregated_data_to_csv(players, opponents, noise=noise)
+        save_all_match_results(players, turns=200, repetitions=1000, noise=noise)
+        aggregated_data_to_csv(players, opponents, noise=noise)
         save_tournament_data(players)
         table_1(players)
         table_2(players)
