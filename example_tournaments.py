@@ -32,7 +32,9 @@ def axelrod_strategies(cheaters=False, meta=False, transformer=None):
     if cheaters:
         s.extend(axelrod.cheating_strategies)
     if not meta:
-        s = [t for t in s if not t.__name__.startswith("Meta")]
+        s = [t for t in s if not (
+            t.__name__.startswith("Meta") or t.__name__.startswith("NiceMeta")
+        or t.__name__.startswith("NMW"))]
     # Instantiate
     if transformer:
         s = [transformer(t)() for t in s]
@@ -190,7 +192,7 @@ def run_tournament(name, strategies, repetitions=100, turns=200, noise=0,
     # Set up a tournament manager
     tournament = axelrod.Tournament(strategies, turns=turns,
                                     repetitions=repetitions,
-                                    with_morality=False, noise=noise)
+                                    noise=noise)
     results = tournament.play(processes=processes)
     # Make the plots
     all_plots(label=name, results=results, filename_suffix=name,

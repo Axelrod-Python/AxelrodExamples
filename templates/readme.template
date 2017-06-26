@@ -20,8 +20,8 @@ Cooperation Rate Heatmaps
 
 <div style="text-align:center">
 <p>Left: no noise | Right: 5% noise</p>
-<img src ="http://www.marcharper.codes/axelrod/heatmaps/cooperation/ZD-GTFT-2.png" width="45%" alt="Cooperation Heatmap"/>
-<img src ="http://www.marcharper.codes/axelrod/heatmaps/cooperation-noisy/ZD-GTFT-2.png" width="45%" alt="Cooperation Heatmap with 5% noise"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/cooperation/ZD-GTFT-2: 0.25, 0.5.png" width="45%" alt="Cooperation Rate Heatmap"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/cooperation-noisy/ZD-GTFT-2: 0.25, 0.5.png" width="45%" alt="Cooperation Rate Heatmap with 5% noise"/>
 </div>
 
 <b>Calculator</b><br/>
@@ -50,12 +50,15 @@ repeated games between every pair of strategies).
 <img src ="http://www.marcharper.codes/axelrod/heatmaps/score-noisy/Alternator.png" width="45%" alt="Average Score Heatmap with 5% noise"/>
 </div>
 
-<b>Davis</b><br/>
+<b>Evolved ANN 5 Noise 05</b><br/>
+
+Mean Score Heatmap
+******************
 
 <div style="text-align:center">
 <p>Left: no noise | Right: 5% noise</p>
-<img src ="http://www.marcharper.codes/axelrod/heatmaps/score/Davis.png" width="45%" alt="Average Score Heatmap"/>
-<img src ="http://www.marcharper.codes/axelrod/heatmaps/score-noisy/Davis.png" width="45%" alt="Average Score Heatmap with 5% noise"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/score/Evolved ANN 5 Noise 05.png" width="45%" alt="Mean Score Heatmap"/>
+<img src ="http://www.marcharper.codes/axelrod/heatmaps/score-noisy/Evolved ANN 5 Noise 05.png" width="45%" alt="Mean Score Heatmap with 5% noise"/>
 </div>
 
 

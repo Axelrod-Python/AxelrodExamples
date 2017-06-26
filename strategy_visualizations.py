@@ -8,7 +8,7 @@ Requires python 3.4+
 
 import argparse
 from collections import Counter, defaultdict
-import csv # python 3+ usage
+import csv
 import itertools
 from operator import itemgetter
 import os
@@ -17,7 +17,7 @@ import sys
 
 import numpy
 import matplotlib
-from matplotlib import pyplot
+from matplotlib import pyplot as plt
 
 import axelrod
 
@@ -86,8 +86,8 @@ def counter_mean(counter):
 def normalized_name(player):
     """Normalizes the player name."""
     player_name = str(player)
-    for char1, char2 in [('/', '-'), ('\\', ''), ('$', '')]:
-        player_name = player_name.replace(char1, char2)
+    # for char1, char2 in [('/', '-'), ('\\', ''), ('$', '')]:
+    #     player_name = player_name.replace(char1, char2)
     return player_name
 
 
@@ -110,7 +110,8 @@ def unzip(l):
 
 def csv_filename(player, opponent, noise=None):
     """Provides a standardized filename for storing and loading match data."""
-    filename = "{}--{}.csv".format(normalized_name(player), normalized_name(opponent))
+    filename = "{}--{}.csv".format(normalized_name(player),
+                                   normalized_name(opponent))
     if noise:
         path = Path("assets") / "csv" / "matches-noisy" / filename
     else:
@@ -148,9 +149,8 @@ def load_match_csv(player, opponent, noise=None):
             yield [(elem[index0], elem[index1]) for elem in row]
 
 
-def write_match_to_csv(data, filename, data_directory="csv"):
+def write_match_to_csv(data, filename):
     """Takes match data (or a generator) and writes the data to a csv file."""
-    #ensure_directory("csv")
     path = Path(filename)
     with path.open('w') as csvfile:
         writer = csv.writer(csvfile)
@@ -159,7 +159,7 @@ def write_match_to_csv(data, filename, data_directory="csv"):
             writer.writerow(csv_row)
 
 
-def generate_match_results(player, opponent, turns=200, repetitions=1000,
+def generate_match_results(player, opponent, turns=200, repetitions=100,
                            noise=None):
     """Generates match date between two players. Yields rows of the form
     [(C, D), (C, C), ...]."""
@@ -195,13 +195,14 @@ def save_all_match_results(players, turns=200, repetitions=100, noise=0):
     """Caches match results for all pairs of players"""
     for p1, p2 in itertools.combinations_with_replacement(players, 2):
         print(p1, p2)
-        ## Check if the outcome will be deterministic. If so, only run one repetition
+        # Check if the outcome will be deterministic. If so, only run one
+        # repetition.
         if is_deterministic(p1, p2, noise):
             repetitions_ = 1
         else:
             repetitions_ = repetitions
         data = generate_match_results(p1, p2, turns=turns,
-                                        repetitions=repetitions_, noise=noise)
+                                      repetitions=repetitions_, noise=noise)
         filename = csv_filename(p1, p2, noise=noise)
         write_match_to_csv(data, filename)
 
@@ -227,7 +228,7 @@ class CooperationAggregator(object):
 
 
 class OpponentCooperationAggregator(object):
-    """Aggregates the cooperation probability of the opponentper round over
+    """Aggregates the cooperation probability of the opponent per round over
     many histories."""
     def __init__(self):
         self.mapping = {'C': 1, 'D': 0}
@@ -331,61 +332,69 @@ def visualize_strategy(data, player, opponents, directory, turns=200,
     """Plots the average (e.g.) cooperate rate or score per turn for `player` versus
     every opponent in `opponents`."""
     if not cmap:
-        cmap = pyplot.get_cmap("RdBu")
+        cmap = plt.get_cmap("RdBu")
     if sort:
         data.sort(key=itemgetter(1))
         sort_order = [x[0] for x in data]
     else:
         sort_order = range(len(opponents))
-
-    data = [x[-1] for x in data] # Toss the sorting index and just graph the value
+    # Toss the sorting index and just graph the value
+    data = [x[-1] for x in data]
     data = numpy.array(data)
 
     player_name = normalized_name(player)
 
     # Plot the data in a pcolor colormap
-    pyplot.clf()
-    fig, ax = pyplot.subplots(figsize=(30, 15))
+    plt.clf()
+    fig, ax = plt.subplots()
+    figure = ax.get_figure()
+    height = 16
+    width = 24
+    figure.set_size_inches(width, height)
+
     try:
         sm = ax.pcolor(data, cmap=cmap, vmin=vmin, vmax=vmax)
+        # sm = ax.matshow(data, cmap=cmap, vmin=vmin, vmax=vmax)
     except:
-        pyplot.close(fig)
+        plt.close(fig)
         return
     ax.set_ylim(0, len(opponents))
     yticks = [str(opponents[sort_order[i]]) for i in range(len(opponents))]
     ax.set_title(player_name)
-    pyplot.yticks([y + 0.5 for y in range(len(yticks))], yticks)
-    cbar = pyplot.colorbar(sm, ax=ax)
-    pyplot.xlabel("Rounds")
+    plt.yticks([y + 0.5 for y in range(len(yticks))], yticks)
+    cbar = plt.colorbar(sm, ax=ax)
+    plt.xlabel("Rounds")
 
     filename = os.path.join(directory, "%s.png" % (player_name,))
-    pyplot.savefig(filename)
-    pyplot.close(fig)
+    ax.tick_params(axis='both', which='both', labelsize=8)
+    plt.tight_layout()
+    plt.savefig(filename, dpi=200)
+    plt.close(fig)
 
 
 def make_figures(strategies, opponents, turns=200, repetitions=50,
                  noise=0, function="c"):
     # Score heatmaps
     if function == 's':
-        cmap = pyplot.get_cmap("autumn")
+        cmap = plt.get_cmap("autumn")
         directory = "score"
         vmin, vmax = game_extremes()
         aggClass = ScoreAggregator
     # Score Diff heatmaps
     elif function == 'sd':
-        cmap = pyplot.get_cmap("autumn")
+        cmap = plt.get_cmap("autumn")
         directory = "score_diff"
         vmin, vmax = game_extremes()
         aggClass = ScoreDiffAggregator
     # Cooperation heatmaps
     elif function == 'c':
-        cmap = pyplot.get_cmap("RdBu")
+        cmap = plt.get_cmap("RdBu")
         directory = "cooperation"
         vmin, vmax = None, None
         aggClass = CooperationAggregator
     # Opponent_cooperation_heatmaps
     elif function == 'oc':
-        cmap = pyplot.get_cmap("RdBu")
+        cmap = plt.get_cmap("RdBu")
         directory = "opponent_cooperation"
         vmin, vmax = None, None
         aggClass = OpponentCooperationAggregator
@@ -401,7 +410,7 @@ def make_figures(strategies, opponents, turns=200, repetitions=50,
 
         visualize_strategy(data, player, opponents, directory=str(path), noise=noise,
                            cmap=cmap, vmin=vmin, vmax=vmax)
-        matplotlib.pyplot.close("all")
+        plt.close("all")
 
 
 def summarize_matchup(player, opponent, initial=10):
@@ -419,7 +428,7 @@ def summarize_matchup(player, opponent, initial=10):
     first_defection = defaultdict(int)
 
     for row in match_data:
-        match_length = len(row) # assumes all are equal
+        match_length = len(row)  # assumes all are equal
         total_matches += 1
         total_plays += len(row)
         score = 0
@@ -769,7 +778,8 @@ if __name__ == "__main__":
 
     # Generate the data?
     if gen_data:
-        save_all_match_results(players, turns=200, repetitions=1000, noise=noise)
+        save_all_match_results(players, turns=200, repetitions=1000,
+                               noise=noise)
         aggregated_data_to_csv(players, opponents, noise=noise)
         save_tournament_data(players)
         table_1(players)
